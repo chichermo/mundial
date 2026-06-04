@@ -1,0 +1,19 @@
+{
+  "name": "WE26 · Mundial & Polla",
+  "short_name": "WE26",
+  "description": "Calendario Mundial 2026 y polla entre amigos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1f17",
+  "theme_color": "#0c1f17",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

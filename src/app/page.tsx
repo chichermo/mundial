@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { CountdownBanner } from "@/components/CountdownBanner";
+import { matches } from "@/lib/matches-data";
+import { getPollaSession, getUserSession } from "@/lib/session";
+
+export default async function HomePage() {
+  const user = await getUserSession();
+  const polla = await getPollaSession();
+
+  const nextMatch = matches.find((m) => {
+    const kickoff = new Date(`${m.date}T${m.kickoffEst}`);
+    return kickoff > new Date();
+  });
+
+  return (
+    <div className="space-y-10 sm:space-y-16">
+      <section className="hero-shell relative overflow-hidden px-4 py-10 sm:px-6 sm:py-16 md:px-12 md:py-24">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-lime/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 left-10 h-56 w-56 rounded-full bg-gold/10 blur-3xl" />
+        <CountdownBanner />
+        <p className="mb-3 mt-6 font-display text-sm tracking-[0.35em] text-lime">
+          CANADÁ · MÉXICO · USA
+        </p>
+        <h1 className="font-display text-4xl leading-[0.92] text-cream sm:text-5xl md:text-8xl">
+          MUNDIAL
+          <br />
+          <span className="text-gradient-gold">2026</span>
+        </h1>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-muted sm:mt-6 sm:text-lg">
+          Calendario con horarios en Chile, España y Bélgica, TV por país y polla con{" "}
+          <strong className="text-cream">cuenta propia</strong> para crear grupos e invitar amigos.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
+          <Link href="/calendario" className="btn-primary w-full sm:w-auto">
+            Ver calendario
+          </Link>
+          {user ? (
+            <Link href={polla ? "/polla" : "/polla/grupos"} className="btn-ghost w-full sm:w-auto">
+              <span className="truncate">
+                {polla ? `Mi polla: ${polla.groupName}` : "Mis grupos"}
+              </span>
+            </Link>
+          ) : (
+            <>
+              <Link href="/cuenta/registro" className="btn-primary w-full sm:w-auto">
+                Crear cuenta
+              </Link>
+              <Link href="/cuenta/login" className="btn-ghost w-full sm:w-auto">
+                Iniciar sesión
+              </Link>
+            </>
+          )}
+        </div>
+        <dl className="mt-14 grid grid-cols-3 gap-6 border-t border-pitch-mid/40 pt-10 md:max-w-xl">
+          <div>
+            <dt className="font-display text-4xl text-lime">104</dt>
+            <dd className="text-xs uppercase tracking-wider text-muted">Partidos</dd>
+          </div>
+          <div>
+            <dt className="font-display text-4xl text-lime">48</dt>
+            <dd className="text-xs uppercase tracking-wider text-muted">Selecciones</dd>
+          </div>
+          <div>
+            <dt className="font-display text-4xl text-lime">3</dt>
+            <dd className="text-xs uppercase tracking-wider text-muted">Husos horarios</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="grid gap-6 md:grid-cols-3">
+        <article className="card-pitch card-hover p-6 md:col-span-2">
+          <span className="text-2xl" aria-hidden>
+            📅
+          </span>
+          <h2 className="mt-3 font-display text-2xl text-gold">Calendario mundial</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Filtra por fase, grupo o selección. Horarios 🇨🇱 🇪🇸 🇧🇪 y canales de transmisión en
+            cada partido.
+          </p>
+          <Link href="/calendario" className="btn-ghost mt-6 text-sm">
+            Explorar partidos →
+          </Link>
+        </article>
+        <article className="card-pitch card-hover p-6">
+          <span className="text-2xl" aria-hidden>
+            🏆
+          </span>
+          <h2 className="mt-3 font-display text-2xl text-gold">Polla</h2>
+          <ol className="mt-3 space-y-2 text-sm text-muted">
+            <li>1. Crea tu cuenta</li>
+            <li>2. Arma un grupo o únete con código</li>
+            <li>3. Pronostica y sube en el ranking</li>
+          </ol>
+          <Link
+            href={user ? "/polla/grupos" : "/cuenta/registro"}
+            className="btn-primary mt-6 w-full text-sm"
+          >
+            {user ? "Mis grupos" : "Empezar gratis"}
+          </Link>
+        </article>
+      </section>
+
+      {nextMatch && (
+        <section>
+          <h2 className="font-display mb-4 text-lg text-muted">Próximo partido</h2>
+          <div className="card-pitch flex flex-wrap items-center justify-between gap-4 p-6">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-lime">#{nextMatch.id}</p>
+              <p className="font-display text-3xl">
+                {nextMatch.home} <span className="text-muted">vs</span> {nextMatch.away}
+              </p>
+            </div>
+            <Link href="/calendario" className="btn-ghost text-sm">
+              Ver en calendario →
+            </Link>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}

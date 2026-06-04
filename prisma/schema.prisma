@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  displayName           String
+  notifyMatchReminders  Boolean      @default(true)
+  createdAt             DateTime     @default(now())
+  ownedGroups  PollaGroup[] @relation("GroupOwner")
+  memberships  Member[]
+}
+
+model PollaGroup {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  ownerId   String?
+  owner     User?    @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  members   Member[]
+}
+
+model Member {
+  id                  String               @id @default(cuid())
+  name                String
+  userId              String?
+  user                User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId             String
+  group               PollaGroup           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now())
+  matchPredictions    MatchPrediction[]
+  knockoutPredictions KnockoutPrediction[]
+  tournamentPick      TournamentPick?
+
+  @@unique([groupId, userId])
+}
+
+model MatchPrediction {
+  id         String   @id @default(cuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  matchId    Int
+  homeScore  Int
+  awayScore  Int
+  updatedAt  DateTime @updatedAt
+
+  @@unique([memberId, matchId])
+}
+
+model KnockoutPrediction {
+  id          String @id @default(cuid())
+  memberId    String
+  member      Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  matchId     Int
+  winnerLabel String
+
+  @@unique([memberId, matchId])
+}
+
+model TournamentPick {
+  id               String   @id @default(cuid())
+  memberId         String   @unique
+  member           Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  champion         String?
+  surprise         String?
+  revelationTeam   String?
+  topScorer        String?
+  revelationPlayer String?
+  updatedAt        DateTime @updatedAt
+}
+
+model MatchResult {
+  matchId     Int      @id
+  homeScore   Int?
+  awayScore   Int?
+  winnerLabel String?
+  updatedAt   DateTime @updatedAt
+}
+
+model GlobalAnswers {
+  id               String   @id @default("global")
+  champion         String?
+  surprise         String?
+  revelationTeam   String?
+  topScorer        String?
+  revelationPlayer String?
+  updatedAt        DateTime @updatedAt
+}
