@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import { AccountLogout } from "@/components/AccountLogout";
-import { GroupsHub } from "@/components/GroupsHub";
+import { BalsuosPollaHub } from "@/components/BalsuosPollaHub";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { getUserGroups } from "@/lib/polla-groups";
+import { getBalsuosGroupPublic, getBalsuosMembership } from "@/lib/balsuos-group";
 import { getPollaSession, getUserSession } from "@/lib/session";
 
 export default async function GruposPage() {
@@ -11,23 +10,38 @@ export default async function GruposPage() {
   if (!user) redirect("/cuenta/login?next=/polla/grupos");
 
   const polla = await getPollaSession();
-  const groups = await getUserGroups(user.userId);
+  const group = await getBalsuosGroupPublic();
+  const membership = await getBalsuosMembership(user.userId);
+
+  if (membership && !polla) {
+    const { switchToMember } = await import("@/lib/polla-groups");
+    await switchToMember(user.userId, membership.memberId);
+  }
 
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Tu cuenta"
-        title="Mis grupos"
-        description="Crea una polla, invita con el código o únete al grupo de tus amigos."
+        eyebrow="Polla de amigos"
+        title={group.name}
+        description="Un solo grupo para todos. Comparte el código o únete con un clic."
         actions={<AccountLogout />}
       />
-      <Suspense fallback={null}>
-        <GroupsHub
-          groups={groups}
-          activeMemberId={polla?.memberId}
-          userName={user.displayName}
-        />
-      </Suspense>
+      <BalsuosPollaHub
+        groupName={group.name}
+        groupCode={group.code}
+        memberCount={group.memberCount}
+        membership={
+          membership
+            ? {
+                memberId: membership.memberId,
+                memberCount: membership.memberCount,
+                predictionsCount: membership.predictionsCount,
+              }
+            : null
+        }
+        isActive={polla?.memberId === membership?.memberId}
+        userName={user.displayName}
+      />
     </div>
   );
 }

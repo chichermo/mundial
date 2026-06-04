@@ -8,7 +8,7 @@ import type { PollaSession, UserSession } from "@/lib/session";
 const links = [
   { href: "/", label: "Inicio" },
   { href: "/calendario", label: "Calendario" },
-  { href: "/polla", label: "Polla" },
+  { href: "/polla/grupos", label: "Polla" },
 ];
 
 type Props = {
@@ -41,9 +41,6 @@ export function SiteNav({ user, polla }: Props) {
   }
 
   function isActive(linkHref: string) {
-    if (linkHref === "/polla") {
-      return pathname.startsWith("/polla");
-    }
     return pathname === linkHref || (linkHref !== "/" && pathname.startsWith(`${linkHref}/`));
   }
 
@@ -73,9 +70,11 @@ export function SiteNav({ user, polla }: Props) {
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
           {links.map((link) => {
-            const href =
-              link.href === "/polla" ? pollaHref() : link.href === "/polla" && user ? "/polla/grupos" : link.href;
-            const active = isActive(link.href);
+            const href = link.href === "/polla/grupos" ? pollaHref() : link.href;
+            const active =
+              link.href === "/polla/grupos"
+                ? pathname.startsWith("/polla")
+                : isActive(link.href);
             return (
               <Link
                 key={link.href}
@@ -154,12 +153,17 @@ export function SiteNav({ user, polla }: Props) {
           >
             <div className="flex flex-col gap-1">
               {links.map((link) => {
-                const href = link.href === "/polla" ? pollaHref() : link.href;
+                const href =
+                  link.href === "/polla/grupos" ? pollaHref() : link.href;
+                const active =
+                  link.href === "/polla/grupos"
+                    ? pathname.startsWith("/polla")
+                    : isActive(link.href);
                 return (
                   <Link
                     key={link.href}
                     href={href}
-                    className={navLinkClass(isActive(link.href))}
+                    className={navLinkClass(active)}
                     onClick={() => setMenuOpen(false)}
                   >
                     {link.label}
@@ -173,7 +177,7 @@ export function SiteNav({ user, polla }: Props) {
                     className={navLinkClass(pathname.startsWith("/polla/grupos"))}
                     onClick={() => setMenuOpen(false)}
                   >
-                    Mis grupos
+                    Polla Balsuos
                     {polla && (
                       <span className="ml-2 truncate text-xs text-muted">· {polla.groupName}</span>
                     )}

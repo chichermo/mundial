@@ -20,10 +20,10 @@ export function MatchDayBlock({ date, matches, viewMode }: Props) {
   if (viewMode === "compact") {
     return (
       <section className="overflow-hidden rounded-xl border border-pitch-mid/50 bg-pitch-light/40">
-        <h2 className="sticky z-[9] border-b border-pitch-mid/40 bg-pitch/95 px-3 py-2 font-display text-sm capitalize text-gold backdrop-blur" style={{ top: "var(--nav-height, 3.5rem)" }}>
+        <h2 className="relative z-0 border-b border-pitch-mid/50 bg-pitch-mid/25 px-3 py-2.5 font-display text-sm capitalize leading-tight text-gold sm:px-4">
           {label}
         </h2>
-        <div>
+        <div className="relative z-0 divide-y divide-pitch-mid/20">
           {matches.map((m) => (
             <MatchListRow key={m.id} match={m} />
           ))}
@@ -33,13 +33,8 @@ export function MatchDayBlock({ date, matches, viewMode }: Props) {
   }
 
   return (
-    <section>
-      <h2
-        className="font-display mb-3 sticky z-[9] inline-block rounded-lg bg-pitch/95 px-3 py-1 text-base text-gold backdrop-blur sm:text-lg"
-        style={{ top: "var(--nav-height, 3.5rem)" }}
-      >
-        {label}
-      </h2>
+    <section className="space-y-4">
+      <h2 className="font-display text-base capitalize text-gold sm:text-lg">{label}</h2>
       <div className="space-y-4">
         {matches.map((m) => (
           <MatchCard key={m.id} match={m} />
@@ -64,7 +59,11 @@ export function groupMatchesByDateAndView(
 ): { date: string; matches: Match[]; viewMode: ViewMode }[] {
   return entries.map(([date, dayMatches]) => {
     const modes = dayMatches.map((m) => resolveViewMode(m, displayMode));
-    const viewMode: ViewMode = modes.every((v) => v === "compact") ? "compact" : modes.every((v) => v === "detailed") ? "detailed" : "compact";
+    const viewMode: ViewMode = modes.every((v) => v === "compact")
+      ? "compact"
+      : modes.every((v) => v === "detailed")
+        ? "detailed"
+        : "compact";
     return { date, matches: dayMatches, viewMode };
   });
 }

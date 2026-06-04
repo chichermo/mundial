@@ -37,7 +37,7 @@ export default async function HomePage() {
           {user ? (
             <Link href={polla ? "/polla" : "/polla/grupos"} className="btn-ghost w-full sm:w-auto">
               <span className="truncate">
-                {polla ? `Mi polla: ${polla.groupName}` : "Mis grupos"}
+                {polla ? `Polla: ${polla.groupName}` : "Unirme a Balsuos"}
               </span>
             </Link>
           ) : (
@@ -95,7 +95,7 @@ export default async function HomePage() {
             href={user ? "/polla/grupos" : "/cuenta/registro"}
             className="btn-primary mt-6 w-full text-sm"
           >
-            {user ? "Mis grupos" : "Empezar gratis"}
+            {user ? "Polla Balsuos" : "Empezar gratis"}
           </Link>
         </article>
       </section>
