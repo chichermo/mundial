@@ -23,12 +23,52 @@ export function formatKickoff(
   kickoffEst: string,
   zone: TimezoneKey,
 ): { time: string; dateLabel: string } {
+  return formatKickoffInZone(date, kickoffEst, ZONES[zone].tz);
+}
+
+export function formatKickoffInZone(
+  date: string,
+  kickoffEst: string,
+  ianaTz: string,
+): { time: string; dateLabel: string } {
   const utc = getKickoffUtc(date, kickoffEst);
-  const { tz } = ZONES[zone];
   return {
-    time: formatInTimeZone(utc, tz, "HH:mm", { locale: es }),
-    dateLabel: formatInTimeZone(utc, tz, "EEE d MMM", { locale: es }),
+    time: formatInTimeZone(utc, ianaTz, "HH:mm", { locale: es }),
+    dateLabel: formatInTimeZone(utc, ianaTz, "EEE d MMM", { locale: es }),
   };
+}
+
+export type ResolvedTimezone = {
+  tz: string;
+  label: string;
+  flag?: string;
+  key?: TimezoneKey;
+};
+
+/** Mapea la zona IANA del navegador a etiqueta amigable (prioriza CL/ES/BE). */
+export function resolveBrowserTimezone(iana: string): ResolvedTimezone {
+  for (const key of Object.keys(ZONES) as TimezoneKey[]) {
+    if (ZONES[key].tz === iana) {
+      const z = ZONES[key];
+      return { tz: z.tz, label: z.label, flag: z.flag, key };
+    }
+  }
+
+  try {
+    const parts = new Intl.DateTimeFormat("es", {
+      timeZone: iana,
+      timeZoneName: "short",
+    }).formatToParts(new Date());
+    const shortName = parts.find((p) => p.type === "timeZoneName")?.value;
+    if (shortName) {
+      return { tz: iana, label: shortName };
+    }
+  } catch {
+    /* zona no válida */
+  }
+
+  const fallback = iana.split("/").pop()?.replace(/_/g, " ") ?? iana;
+  return { tz: iana, label: fallback };
 }
 
 export function getAllZoneTimes(date: string, kickoffEst: string) {

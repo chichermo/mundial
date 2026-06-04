@@ -4,15 +4,37 @@ import { useState } from "react";
 import type { Match } from "@/lib/matches-data";
 import { getPhaseLabel } from "@/lib/matches-data";
 import { BroadcastPanel } from "@/components/BroadcastPanel";
-import { formatKickoff } from "@/lib/timezones";
+import { useKickoffForBrowser } from "@/hooks/useBrowserTimezone";
 
 type Props = {
   match: Match;
 };
 
+type KickoffDisplay = NonNullable<ReturnType<typeof useKickoffForBrowser>>;
+
+function ListKickoffTime({ kickoff }: { kickoff: KickoffDisplay | null }) {
+  if (!kickoff) {
+    return (
+      <span className="inline-block min-w-[3rem] font-display text-lg leading-none text-lime/40 sm:text-xl">
+        ···
+      </span>
+    );
+  }
+
+  const { time, zone } = kickoff;
+  const zoneTitle = zone.flag ? `${zone.flag} ${zone.label}` : zone.label;
+
+  return (
+    <span className="inline-flex flex-col items-end leading-none" title={`Hora en tu zona (${zoneTitle})`}>
+      <span className="font-display text-xl text-lime sm:text-lg">{time}</span>
+      <span className="mt-0.5 max-w-[4.5rem] truncate text-[9px] text-muted">{zoneTitle}</span>
+    </span>
+  );
+}
+
 export function MatchListRow({ match }: Props) {
   const [open, setOpen] = useState(false);
-  const cl = formatKickoff(match.date, match.kickoffEst, "chile");
+  const kickoff = useKickoffForBrowser(match.date, match.kickoffEst);
   const hasFreeTv = (match.broadcast.chile.freeTv?.length ?? 0) > 0;
   const phaseLabel = match.group ? `G${match.group}` : getPhaseLabel(match.phase);
 
@@ -27,7 +49,7 @@ export function MatchListRow({ match }: Props) {
         <div className="flex flex-col gap-2 sm:hidden">
           <div className="flex items-center justify-between gap-2">
             <span className="font-mono text-xs text-muted">#{match.id}</span>
-            <span className="font-display text-xl text-lime">{cl.time}</span>
+            <ListKickoffTime kickoff={kickoff} />
             <span className="rounded bg-pitch-mid/80 px-1.5 py-0.5 text-[10px] uppercase text-muted">
               {phaseLabel}
             </span>
@@ -45,7 +67,7 @@ export function MatchListRow({ match }: Props) {
         {/* Tablet+ */}
         <div className="hidden w-full grid-cols-[2.5rem_3.5rem_1fr_auto_auto] items-center gap-2 sm:grid md:grid-cols-[2.5rem_4rem_1fr_5rem_auto]">
           <span className="font-mono text-xs text-muted">#{match.id}</span>
-          <span className="font-display text-lg leading-none text-lime">{cl.time}</span>
+          <ListKickoffTime kickoff={kickoff} />
           <span className="min-w-0 text-sm sm:truncate">
             <span className="text-cream">{match.home}</span>
             <span className="mx-1 text-muted">vs</span>
@@ -59,7 +81,14 @@ export function MatchListRow({ match }: Props) {
       {open && (
         <div className="border-t border-pitch-mid/20 bg-pitch/50 px-3 py-3 text-xs sm:px-4">
           <p className="break-words text-muted">
-            {match.venue} · {match.city} · {cl.dateLabel}
+            {match.venue} · {match.city}
+            {kickoff && (
+              <>
+                {" "}
+                · {kickoff.dateLabel}
+                {kickoff.zone.flag ? ` (${kickoff.zone.flag} ${kickoff.zone.label})` : ` (${kickoff.zone.label})`}
+              </>
+            )}
           </p>
           {hasFreeTv && (
             <p className="mt-1 break-words text-gold">
