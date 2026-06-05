@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: root,
   serverExternalPackages: ["@libsql/client", "@prisma/adapter-libsql", "libsql"],
+  async redirects() {
+    return [{ source: "/favicon.ico", destination: "/icon.svg", permanent: false }];
+  },
 };
 
 export default nextConfig;

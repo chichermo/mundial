@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { dbErrorResponse, isDbConfigError } from "@/lib/api-error";
 import { hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { setUserSession } from "@/lib/session";
@@ -11,30 +12,36 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const parsed = schema.safeParse(await req.json());
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Revisa email, contraseña (mín. 6) y nombre." }, { status: 400 });
+  try {
+    const parsed = schema.safeParse(await req.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Revisa email, contraseña (mín. 6) y nombre." }, { status: 400 });
+    }
+
+    const email = parsed.data.email.toLowerCase().trim();
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) {
+      return NextResponse.json({ error: "Ya existe una cuenta con ese email." }, { status: 409 });
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        displayName: parsed.data.displayName.trim(),
+        passwordHash: await hashPassword(parsed.data.password),
+      },
+    });
+
+    await setUserSession({
+      userId: user.id,
+      email: user.email,
+      displayName: user.displayName,
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    if (isDbConfigError(err)) return dbErrorResponse(err);
+    console.error("[auth/register]", err);
+    return NextResponse.json({ error: "Error interno al crear la cuenta." }, { status: 500 });
   }
-
-  const email = parsed.data.email.toLowerCase().trim();
-  const exists = await prisma.user.findUnique({ where: { email } });
-  if (exists) {
-    return NextResponse.json({ error: "Ya existe una cuenta con ese email." }, { status: 409 });
-  }
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      displayName: parsed.data.displayName.trim(),
-      passwordHash: await hashPassword(parsed.data.password),
-    },
-  });
-
-  await setUserSession({
-    userId: user.id,
-    email: user.email,
-    displayName: user.displayName,
-  });
-
-  return NextResponse.json({ ok: true });
 }

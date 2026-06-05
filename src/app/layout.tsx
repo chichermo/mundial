@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   description:
     "Calendario completo del Mundial 2026 con horarios en Chile, España y Bélgica, transmisión TV y polla entre amigos.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: "/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     title: "WE26",

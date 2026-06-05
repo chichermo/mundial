@@ -33,7 +33,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
         ),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error");
+      if (!res.ok) {
+        const msg = [data.error, data.hint].filter(Boolean).join(" ");
+        throw new Error(msg || "Error");
+      }
       router.push(next);
       router.refresh();
     } catch (err) {
