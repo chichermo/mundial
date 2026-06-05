@@ -57,6 +57,8 @@ git add src/data/fixture-map.json && git commit -m "Actualizar fixture map"
 
 La tabla en vivo y la polla se actualizan solas al guardar resultados.
 
+**Nota plan Free:** a fecha de hoy API-Football puede limitar `season=2026` al plan de pago. La clave queda lista en Vercel; cuando habiliten 2026 en free (cerca del torneo), `npm run fixture-map` y el sync automático funcionarán. Hasta entonces usa `/admin` manual.
+
 ## Invitación
 
 Comparte `/unirse` — redirige a registro y unión a Balsuos.

@@ -8,10 +8,25 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const API_KEY = process.env.API_FOOTBALL_KEY;
+function loadEnvKey() {
+  if (process.env.API_FOOTBALL_KEY) return process.env.API_FOOTBALL_KEY;
+  try {
+    const envPath = join(__dirname, "../.env");
+    const text = readFileSync(envPath, "utf8");
+    for (const line of text.split("\n")) {
+      const m = line.match(/^API_FOOTBALL_KEY=(?:"([^"]+)"|(\S+))/);
+      if (m) return (m[1] ?? m[2]).trim();
+    }
+  } catch {
+    /* sin .env */
+  }
+  return null;
+}
+
+const API_KEY = loadEnvKey();
 
 if (!API_KEY) {
-  console.error("Define API_FOOTBALL_KEY");
+  console.error("Define API_FOOTBALL_KEY en .env o en la variable de entorno");
   process.exit(1);
 }
 
@@ -95,7 +110,14 @@ if (!res.ok) {
 
 const data = await res.json();
 if (data.errors && Object.keys(data.errors).length) {
-  console.error("API errors", data.errors);
+  console.error("API errors:", data.errors);
+  if (data.errors.plan?.includes("2026")) {
+    console.error(
+      "\nEl plan Free de API-Football aún no incluye la temporada 2026.\n" +
+        "Cuando abran el Mundial (o con plan de pago), vuelve a ejecutar: npm run fixture-map\n" +
+        "Mientras tanto, carga resultados manualmente en /admin o usa import JSON.",
+    );
+  }
   process.exit(1);
 }
 
