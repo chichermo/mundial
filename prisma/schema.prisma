@@ -8,14 +8,16 @@ datasource db {
 }
 
 model User {
-  id           String       @id @default(cuid())
-  email        String       @unique
-  passwordHash String
-  displayName           String
-  notifyMatchReminders  Boolean      @default(true)
-  createdAt             DateTime     @default(now())
-  ownedGroups  PollaGroup[] @relation("GroupOwner")
-  memberships  Member[]
+  id                   String       @id @default(cuid())
+  email                String       @unique
+  passwordHash         String
+  displayName          String
+  notifyMatchReminders Boolean      @default(true)
+  onboardingDone       Boolean      @default(false)
+  favoriteTeams        String       @default("[]")
+  createdAt            DateTime     @default(now())
+  ownedGroups          PollaGroup[] @relation("GroupOwner")
+  memberships          Member[]
 }
 
 model PollaGroup {
@@ -39,18 +41,19 @@ model Member {
   matchPredictions    MatchPrediction[]
   knockoutPredictions KnockoutPrediction[]
   tournamentPick      TournamentPick?
+  matchComments       MatchComment[]
 
   @@unique([groupId, userId])
 }
 
 model MatchPrediction {
-  id         String   @id @default(cuid())
-  memberId   String
-  member     Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  matchId    Int
-  homeScore  Int
-  awayScore  Int
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  matchId   Int
+  homeScore Int
+  awayScore Int
+  updatedAt DateTime @updatedAt
 
   @@unique([memberId, matchId])
 }
@@ -93,4 +96,28 @@ model GlobalAnswers {
   topScorer        String?
   revelationPlayer String?
   updatedAt        DateTime @updatedAt
+}
+
+model MatchComment {
+  id        String   @id @default(cuid())
+  matchId   Int
+  groupId   String
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime @default(now())
+}
+
+model AdminChangeLog {
+  id        String   @id @default(cuid())
+  action    String
+  detail    String
+  createdAt DateTime @default(now())
+}
+
+model AppConfig {
+  id                 String   @id @default("global")
+  featuredMatchId    Int?
+  featuredMultiplier Int      @default(2)
+  updatedAt          DateTime @updatedAt
 }

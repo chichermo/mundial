@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { CopyInviteCode } from "@/components/CopyInviteCode";
 import { EnableNotificationsButton } from "@/components/PredictionReminders";
 import { LeaveGroupButton } from "@/components/LeaveGroupButton";
+import { FeaturedMatchBanner } from "@/components/FeaturedMatchBanner";
 import { LiveStandingsTable } from "@/components/LiveStandingsTable";
+import { QualifiersBanner } from "@/components/QualifiersBanner";
 import { PollaDashboard } from "@/components/PollaDashboard";
 import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -66,6 +68,8 @@ export default async function PollaPage() {
       />
 
       <CopyInviteCode code={polla.groupCode} />
+      <FeaturedMatchBanner />
+      <QualifiersBanner />
       <PollaProgressCard progress={progress} />
 
       <LiveStandingsTable highlightId={member.id} compact />

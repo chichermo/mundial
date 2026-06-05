@@ -5,6 +5,7 @@ import { requirePollaMember, requireUser } from "@/lib/require-auth";
 import { getKickoffUtc } from "@/lib/timezones";
 
 const HOURS_AHEAD = 48;
+const URGENT_HOURS = 2;
 
 export async function GET() {
   const user = await requireUser();
@@ -35,19 +36,27 @@ export async function GET() {
   const now = Date.now();
   const horizon = now + HOURS_AHEAD * 60 * 60 * 1000;
 
+  const urgentMs = URGENT_HOURS * 60 * 60 * 1000;
+
   const pending = matches
     .filter((m) => {
       const kick = getKickoffUtc(m.date, m.kickoffEst).getTime();
       return kick > now && kick <= horizon && !predicted.has(m.id);
     })
-    .map((m) => ({
-      id: m.id,
-      home: m.home,
-      away: m.away,
-      phase: m.phase,
-      kickoff: getKickoffUtc(m.date, m.kickoffEst).toISOString(),
-    }))
+    .map((m) => {
+      const kick = getKickoffUtc(m.date, m.kickoffEst).getTime();
+      return {
+        id: m.id,
+        home: m.home,
+        away: m.away,
+        phase: m.phase,
+        kickoff: new Date(kick).toISOString(),
+        urgent: kick - now <= urgentMs,
+      };
+    })
     .slice(0, 12);
 
-  return NextResponse.json({ pending, hoursAhead: HOURS_AHEAD });
+  const urgent = pending.filter((m) => m.urgent);
+
+  return NextResponse.json({ pending, urgent, hoursAhead: HOURS_AHEAD, urgentHours: URGENT_HOURS });
 }

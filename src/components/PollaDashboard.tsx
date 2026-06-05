@@ -111,6 +111,7 @@ export function PollaDashboard({
               key={m.id}
               match={m}
               showPrediction
+              showSocial
               prediction={predMap.get(m.id)}
               onPredict={onPredict}
             />

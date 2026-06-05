@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { matches, teams, getPhaseLabel } from "@/lib/matches-data";
 import type { MatchPhase } from "@/lib/matches-data";
@@ -32,6 +32,16 @@ export function AdminPanel({ results, tournament }: Props) {
   const [phase, setPhase] = useState<MatchPhase | "all">("all");
   const [status, setStatus] = useState("");
   const [tForm, setTForm] = useState(tournament);
+  const [importJson, setImportJson] = useState("");
+  const [featuredId, setFeaturedId] = useState("");
+  const [logs, setLogs] = useState<{ action: string; detail: string; createdAt: string }[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/logs")
+      .then((r) => (r.ok ? r.json() : { logs: [] }))
+      .then((d) => setLogs(d.logs ?? []))
+      .catch(() => {});
+  }, [status]);
 
   const filtered = matches.filter((m) => phase === "all" || m.phase === phase);
 
@@ -75,6 +85,32 @@ export function AdminPanel({ results, tournament }: Props) {
     router.refresh();
   }
 
+  async function bulkImport() {
+    try {
+      const parsed = JSON.parse(importJson) as { results: unknown[] };
+      const res = await fetch("/api/admin/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed),
+      });
+      setStatus(res.ok ? "Importación completada" : "Error en importación");
+      router.refresh();
+    } catch {
+      setStatus("JSON inválido");
+    }
+  }
+
+  async function saveFeatured() {
+    const matchId = featuredId ? Number(featuredId) : null;
+    const res = await fetch("/api/admin/featured", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchId, multiplier: 2 }),
+    });
+    setStatus(res.ok ? "Partido del día guardado" : "Error");
+    router.refresh();
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -85,6 +121,65 @@ export function AdminPanel({ results, tournament }: Props) {
       </div>
 
       {status && <p className="text-sm text-lime">{status}</p>}
+
+      <div className="card-pitch grid gap-4 p-6 md:grid-cols-2">
+        <h2 className="font-display text-xl text-gold md:col-span-2">Importar resultados (JSON)</h2>
+        <textarea
+          value={importJson}
+          onChange={(e) => setImportJson(e.target.value)}
+          placeholder='{"results":[{"matchId":1,"homeScore":2,"awayScore":1}]}'
+          className="min-h-[100px] rounded-lg border border-pitch-mid bg-pitch px-3 py-2 font-mono text-xs text-cream md:col-span-2"
+        />
+        <button type="button" onClick={bulkImport} className="btn-primary md:col-span-2">
+          Importar en lote
+        </button>
+      </div>
+
+      <div className="card-pitch flex flex-wrap items-end gap-3 p-6">
+        <label className="block">
+          <span className="mb-1 block text-xs text-muted">Partido del día (ID, puntos x2)</span>
+          <input
+            type="number"
+            min={1}
+            max={104}
+            value={featuredId}
+            onChange={(e) => setFeaturedId(e.target.value)}
+            className="w-24 rounded-lg border border-pitch-mid bg-pitch px-3 py-2 text-sm"
+          />
+        </label>
+        <button type="button" onClick={saveFeatured} className="btn-ghost text-sm">
+          Guardar destacado
+        </button>
+        <button
+          type="button"
+          onClick={async () => {
+            setFeaturedId("");
+            const res = await fetch("/api/admin/featured", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ matchId: null }),
+            });
+            setStatus(res.ok ? "Destacado quitado" : "Error");
+            router.refresh();
+          }}
+          className="btn-ghost text-sm"
+        >
+          Quitar destacado
+        </button>
+      </div>
+
+      {logs.length > 0 && (
+        <div className="card-pitch max-h-48 overflow-y-auto p-4 text-xs">
+          <h2 className="font-display text-lg text-gold">Historial de cambios</h2>
+          <ul className="mt-2 space-y-1 text-muted">
+            {logs.map((l, i) => (
+              <li key={i}>
+                {new Date(l.createdAt).toLocaleString("es")} — <strong className="text-cream">{l.action}</strong>: {l.detail}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <form onSubmit={saveTournament} className="card-pitch grid gap-4 p-6 md:grid-cols-2">
         <h2 className="font-display text-xl text-gold md:col-span-2">

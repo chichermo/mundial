@@ -1,3 +1,4 @@
+import { getFeaturedMatch } from "@/lib/app-config";
 import { prisma } from "@/lib/prisma";
 import { getTournamentAnswers } from "@/lib/global-answers";
 import { getMatch, matches } from "@/lib/matches-data";
@@ -64,6 +65,7 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
   const results = await prisma.matchResult.findMany();
   const resultMap = new Map(results.map((r) => [r.matchId, r]));
   const tournamentAnswers = await getTournamentAnswers();
+  const featured = await getFeaturedMatch();
 
   const finishedGroupMatches = GROUP_MATCH_IDS.filter((id) =>
     isGroupResultComplete(resultMap.get(id)),
@@ -95,6 +97,13 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
           homeScore: result.homeScore,
           awayScore: result.awayScore,
         });
+        if (
+          featured &&
+          matchId === featured.match.id &&
+          points > 0
+        ) {
+          points *= featured.multiplier;
+        }
         groupPts += points;
       }
       matchCells.push({

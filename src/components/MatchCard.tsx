@@ -4,7 +4,11 @@ import { useState } from "react";
 import type { Match } from "@/lib/matches-data";
 import { getPhaseLabel } from "@/lib/matches-data";
 import { isMatchLocked } from "@/lib/timezones";
+import { useCountdown } from "@/hooks/useCountdown";
 import { BroadcastPanel } from "./BroadcastPanel";
+import { MatchComments } from "./MatchComments";
+import { MatchCompare } from "./MatchCompare";
+import { MatchStatusBadge } from "./MatchStatusBadge";
 import { TimezoneStrip } from "./TimezoneStrip";
 
 type Props = {
@@ -12,14 +16,24 @@ type Props = {
   prediction?: { homeScore: number; awayScore: number };
   onPredict?: (matchId: number, home: number, away: number) => Promise<void>;
   showPrediction?: boolean;
+  showSocial?: boolean;
+  result?: { homeScore: number | null; awayScore: number | null } | null;
 };
 
-export function MatchCard({ match, prediction, onPredict, showPrediction }: Props) {
+export function MatchCard({
+  match,
+  prediction,
+  onPredict,
+  showPrediction,
+  showSocial,
+  result,
+}: Props) {
   const [expanded, setExpanded] = useState(false);
   const [home, setHome] = useState(prediction?.homeScore ?? 0);
   const [away, setAway] = useState(prediction?.awayScore ?? 0);
   const [saving, setSaving] = useState(false);
   const locked = isMatchLocked(match.date, match.kickoffEst);
+  const countdown = useCountdown(match.date, match.kickoffEst, !result?.homeScore);
 
   async function save() {
     if (!onPredict || locked) return;
@@ -32,7 +46,10 @@ export function MatchCard({ match, prediction, onPredict, showPrediction }: Prop
   }
 
   return (
-    <article className="card-pitch overflow-hidden transition-shadow hover:shadow-[0_0_32px_rgba(125,255,79,0.08)]">
+    <article
+      id={`partido-${match.id}`}
+      className="card-pitch scroll-mt-24 overflow-hidden transition-shadow hover:shadow-[0_0_32px_rgba(125,255,79,0.08)]"
+    >
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between md:p-5">
         <div className="flex min-w-0 items-start gap-3">
           <span className="shrink-0 font-display text-2xl text-lime/80 sm:text-3xl">
@@ -50,6 +67,10 @@ export function MatchCard({ match, prediction, onPredict, showPrediction }: Prop
           </div>
         </div>
         <div className="shrink-0 text-left text-xs text-muted sm:text-right">
+          <div className="mb-1 flex flex-wrap gap-1 sm:justify-end">
+            <MatchStatusBadge match={match} result={result} />
+            {countdown && <span className="text-gold">{countdown}</span>}
+          </div>
           <p className="break-words">{match.venue}</p>
           <p>{match.city}</p>
         </div>
@@ -117,6 +138,12 @@ export function MatchCard({ match, prediction, onPredict, showPrediction }: Prop
       {expanded && (
         <div className="px-3 pb-4 sm:px-4 md:px-5">
           <BroadcastPanel broadcast={match.broadcast} />
+          {showSocial && (
+            <>
+              <MatchCompare matchId={match.id} />
+              <MatchComments matchId={match.id} />
+            </>
+          )}
         </div>
       )}
     </article>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isAdmin } from "@/lib/admin-auth";
+import { logAdminChange } from "@/lib/admin-log";
 import { prisma } from "@/lib/prisma";
 
 const schema = z.object({
@@ -32,6 +33,11 @@ export async function POST(req: Request) {
     create: { matchId, homeScore, awayScore, winnerLabel: winnerLabel ?? null },
     update: { homeScore, awayScore, winnerLabel: winnerLabel ?? null },
   });
+
+  await logAdminChange(
+    "result",
+    `#${matchId} → ${homeScore ?? "?"}-${awayScore ?? "?"}${winnerLabel ? ` (${winnerLabel})` : ""}`,
+  );
 
   return NextResponse.json({ ok: true });
 }

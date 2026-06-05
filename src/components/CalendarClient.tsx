@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { matches, type Match } from "@/lib/matches-data";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { useFavoriteTeams } from "@/hooks/useFavoriteTeams";
 import { groupMatchesByDateAndView, MatchDayBlock } from "./calendar/MatchDayBlock";
 import { CalendarFilters, type CalendarFiltersState } from "./CalendarFilters";
 
@@ -13,12 +14,22 @@ const teams = [...new Set(matches.flatMap((m) => [m.home, m.away]))].filter(
 
 type DisplayMode = "auto" | "compact" | "detailed";
 
-function filterMatches(list: Match[], f: CalendarFiltersState): Match[] {
+type ResultRow = { homeScore: number | null; awayScore: number | null };
+
+function filterMatches(
+  list: Match[],
+  f: CalendarFiltersState,
+  favorites: string[],
+  favoritesOnly: boolean,
+): Match[] {
   const q = f.query.trim().toLowerCase();
   return list.filter((m) => {
     if (f.phase !== "all" && m.phase !== f.phase) return false;
     if (f.group !== "all" && m.group !== f.group) return false;
     if (f.team !== "all" && m.home !== f.team && m.away !== f.team) return false;
+    if (favoritesOnly && favorites.length > 0) {
+      if (!favorites.includes(m.home) && !favorites.includes(m.away)) return false;
+    }
     if (q) {
       const blob = `${m.home} ${m.away} ${m.venue} ${m.city} ${m.group ?? ""}`.toLowerCase();
       if (!blob.includes(q)) return false;
@@ -34,6 +45,9 @@ const modeLabels: Record<DisplayMode, string> = {
 };
 
 export function CalendarClient() {
+  const { favorites, toggle, isFavorite } = useFavoriteTeams();
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [resultsMap, setResultsMap] = useState<Map<number, ResultRow>>(new Map());
   const [filters, setFilters] = useState<CalendarFiltersState>({
     phase: "all",
     group: "all",
@@ -42,7 +56,28 @@ export function CalendarClient() {
   });
   const [displayMode, setDisplayMode] = useState<DisplayMode>("auto");
 
-  const filtered = useMemo(() => filterMatches(matches, filters), [filters]);
+  useEffect(() => {
+    fetch("/api/matches/results")
+      .then((r) => r.json())
+      .then((data: { results: { matchId: number; homeScore: number | null; awayScore: number | null }[] }) => {
+        setResultsMap(new Map(data.results.map((r) => [r.matchId, r])));
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith("#partido-")) {
+      setTimeout(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 400);
+    }
+  }, []);
+
+  const filtered = useMemo(
+    () => filterMatches(matches, filters, favorites, favoritesOnly),
+    [filters, favorites, favoritesOnly],
+  );
 
   const days = useMemo(() => {
     const map = new Map<string, Match[]>();
@@ -63,8 +98,37 @@ export function CalendarClient() {
       <PageHeader
         eyebrow="Fixture completo"
         title="Calendario WE26"
-        description="Vista compacta en grupos. Eliminatoria en tarjetas amplias."
+        description="Vista compacta en grupos. Eliminatoria en tarjetas amplias. Enlace directo: /calendario#partido-N"
       />
+
+      <div className="card-pitch p-3 sm:p-4">
+        <p className="mb-2 text-xs font-medium text-muted">Mis selecciones favoritas</p>
+        <div className="flex flex-wrap gap-1.5">
+          {["Chile", "Belgium", "Spain", "Mexico", "Argentina", "Brazil"].map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => toggle(t)}
+              className={`rounded-lg px-2.5 py-1 text-xs ${
+                isFavorite(t) ? "bg-lime/20 text-lime ring-1 ring-lime/40" : "bg-pitch-mid/50 text-muted"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        {favorites.length > 0 && (
+          <label className="mt-3 flex items-center gap-2 text-xs text-muted">
+            <input
+              type="checkbox"
+              checked={favoritesOnly}
+              onChange={(e) => setFavoritesOnly(e.target.checked)}
+              className="rounded"
+            />
+            Solo partidos con mis favoritos
+          </label>
+        )}
+      </div>
 
       <CalendarFilters filters={filters} groups={groups} teams={teams} onChange={setFilters} />
 
@@ -107,6 +171,7 @@ export function CalendarClient() {
               date={day.date}
               matches={day.matches}
               viewMode={day.viewMode}
+              resultsMap={resultsMap}
             />
           ))}
         </div>

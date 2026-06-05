@@ -1,79 +1,55 @@
 # WE26 · Mundial 2026
 
-App de calendario del Mundial 2026 con horarios en **Chile**, **España** y **Bélgica**, información de transmisión TV/streaming y **polla** entre amigos.
+App de calendario del Mundial 2026 con hora local automática, transmisión TV y **polla Balsuos** (8 amigos, top 4 a eliminatoria).
 
 ## Funciones
 
-- **Cuentas de usuario**: registro con email, login, perfil con nombre visible en el ranking.
-- **Grupos**: crea una polla, obtén código de invitación, tus amigos se registran y se unen con el código. Puedes pertenecer a varios grupos.
-- **Calendario**: 104 partidos con filtros por fase, grupo y selección.
-- **Horarios**: conversión desde hora base EST/EDT a CLT, CEST (España y Bélgica).
-- **Transmisión** por país:
-  - 🇨🇱 DSports/DGo/Paramount+ (todos), Chilevisión (52 partidos TV abierta), Disney+ Premium (30 partidos).
-  - 🇪🇸 DAZN/Movistar (todos), RTVE La 1/Teledeporte (partidos destacados y España).
-  - 🇧🇪 VRT y RTBF (cobertura completa en TV pública).
-- **Polla**: crear grupo con código, pronósticos de marcador, eliminatoria, campeón, sorpresa, revelación, goleador y jugador revelación, ranking en vivo.
+- **Calendario**: 104 partidos, filtros, favoritos, estado del partido, countdown, enlace `#partido-N`
+- **Hora local**: detecta la zona del navegador en la vista lista
+- **Polla Balsuos**: 8 jugadores, 5 pts exacto / 2 pts L/E/V, tabla en vivo, clasificados, comentarios y comparar pronósticos
+- **Ranking**: `/polla/tabla`, exportar PNG, perfil por jugador con logros
+- **PWA**: instalable, cache básico offline
+- **Avisos**: notificaciones del navegador (2 h antes si falta pronóstico)
+- **Admin**: resultados, import JSON, partido del día (x2 pts), historial de cambios
 
-## Puntuación polla
+## Puntuación polla Balsuos
 
 | Acierto | Puntos |
 |--------|--------|
-| Marcador exacto | 3 |
-| Resultado (ganador/empate) | 1 |
-| Ganador en eliminatoria | 2 |
-| Campeón | 10 |
-| Selección sorpresa / revelación | 6 c/u |
-| Goleador | 8 |
-| Jugador revelación | 6 |
+| Marcador exacto | 5 |
+| Resultado L/E/V | 2 |
+| Ganador eliminatoria (solo top 4) | 2 |
+| Partido del día (admin) | multiplicador x2 |
 
-### Panel admin
+Reglas: `/polla/reglas`
 
-Ruta: `/admin` — contraseña en `ADMIN_PASSWORD` (por defecto `we26admin`, cámbiala en producción).
+## Base de datos
 
-Ahí cargas marcadores reales y las respuestas correctas de campeón, goleador, etc. El ranking se recalcula al instante.
-
-Reglas detalladas: `/polla/reglas`
-
-### ¿Necesitas base de datos en la nube?
-
-Para **~10 usuarios fijos y 1 grupo privado**:
-
-| Dónde corre | Base de datos | Notas |
-|-------------|---------------|--------|
-| Tu PC / servidor en casa (`npm run start`) | **SQLite** (`prisma/dev.db`) | Suficiente. Datos persisten en disco. |
-| Vercel serverless | SQLite **no sirve** (se borra en cada deploy) | Necesitas Turso/Postgres gratis **o** no usar Vercel |
-
-**Recomendación:** si el grupo es cerrado y pequeño, hostea en un mini PC, Raspberry o un VPS barato con SQLite. Solo migra a Turso si quieres URL pública en Vercel.
-
-### PWA y notificaciones
-
-- **Instalar app:** en móvil Chrome/Safari → «Añadir a pantalla de inicio» o el banner «Instalar WE26».
-- **Recordatorios:** en Perfil activa avisos y pulsa «Activar avisos» en la polla (permiso del navegador). Revisa partidos sin pronóstico en las próximas 48 h.
-
-### Despliegue en Vercel (opcional)
-
-Si eliges Vercel, configura **Turso** (plan free) y `DATABASE_URL` con `libsql://...`. Para uso casero, no hace falta.
-
-## Desarrollo
+| Entorno | Configuración |
+|---------|---------------|
+| Local | `DATABASE_URL="file:./dev.db"` |
+| Vercel | Turso: `DATABASE_URL=libsql://...` + `DATABASE_AUTH_TOKEN` |
 
 ```bash
 npm install
-node scripts/generate-matches.mjs
 npx prisma db push
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+## Variables de entorno
 
-### Flujo polla
+Ver `.env.example`: `ADMIN_PASSWORD`, `POLL_GROUP_NAME`, `POLL_GROUP_CODE`, `POLL_MAX_MEMBERS`, `POLL_QUALIFIERS`, `DATABASE_AUTH_TOKEN` (Turso).
 
-1. `/cuenta/registro` — crear cuenta  
-2. `/polla/grupos` — crear grupo o unirse con código  
-3. `/polla` — pronósticos y ranking del grupo activo  
-4. Compartir invitación: botón «Copiar invitación» (código + enlace)
+## Invitación
 
-## Notas
+Comparte `/unirse` — redirige a registro y unión a Balsuos.
 
-- Los horarios usan **EDT (UTC-4)** como referencia FIFA para sedes en Norteamérica.
-- La lista de partidos en Chilevisión/Disney+ sigue el reparto oficial publicado; puede ajustarse en `scripts/generate-matches.mjs`.
-- Los resultados reales de partidos se cargan en la tabla `MatchResult` (próxima mejora: panel admin).
+## Scripts
+
+- `npm run test` — tests de puntuación
+- `npm run build` — build producción
+- `node scripts/generate-matches.mjs` — regenerar fixture
+
+## CI
+
+GitHub Actions en `.github/workflows/ci.yml` (test, lint, build).

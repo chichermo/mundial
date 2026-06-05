@@ -1,5 +1,13 @@
-const CACHE = "we26-v1";
-const ASSETS = ["/", "/calendario", "/polla/grupos", "/icon.svg", "/manifest.webmanifest"];
+const CACHE = "we26-v2";
+const ASSETS = [
+  "/",
+  "/calendario",
+  "/polla/grupos",
+  "/polla/tabla",
+  "/unirse",
+  "/icon.svg",
+  "/manifest.webmanifest",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));

@@ -98,6 +98,12 @@ export function SiteNav({ user, polla }: Props) {
                 </span>
               )}
               <Link
+                href="/cuenta/perfil"
+                className="hidden text-sm text-muted hover:text-lime lg:inline"
+              >
+                Perfil
+              </Link>
+              <Link
                 href="/polla/grupos"
                 className="hidden items-center gap-2 rounded-xl border border-pitch-mid px-2 py-1.5 transition-colors hover:border-lime/40 sm:flex md:px-3 md:py-2"
                 aria-label={`Cuenta de ${user.displayName}`}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, DM_Sans } from "next/font/google";
 import { ClientProviders } from "@/components/ClientProviders";
+import { OnboardingWrapper } from "@/components/OnboardingWrapper";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteNavShell } from "@/components/SiteNavShell";
 import "./globals.css";
@@ -37,10 +38,11 @@ export default function RootLayout({
     <html lang="es" className={`${bebas.variable} ${dmSans.variable}`}>
       <body className="flex min-h-screen flex-col">
         <SiteNavShell />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-20 pt-6 sm:px-4 sm:pb-16 sm:pt-8 md:px-8">
+        <main className="mx-auto w-full max-w-6xl flex-1 px-3 pb-24 pt-6 sm:px-4 sm:pb-20 sm:pt-8 md:px-8">
           {children}
         </main>
         <SiteFooter />
+        <OnboardingWrapper />
         <ClientProviders />
       </body>
     </html>

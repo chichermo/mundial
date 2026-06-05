@@ -4,13 +4,16 @@ import { MatchListRow } from "./MatchListRow";
 
 type ViewMode = "compact" | "detailed";
 
+type ResultRow = { homeScore: number | null; awayScore: number | null };
+
 type Props = {
   date: string;
   matches: Match[];
   viewMode: ViewMode;
+  resultsMap?: Map<number, ResultRow>;
 };
 
-export function MatchDayBlock({ date, matches, viewMode }: Props) {
+export function MatchDayBlock({ date, matches, viewMode, resultsMap }: Props) {
   const label = new Date(`${date}T12:00:00`).toLocaleDateString("es-CL", {
     weekday: "long",
     day: "numeric",
@@ -25,7 +28,7 @@ export function MatchDayBlock({ date, matches, viewMode }: Props) {
         </h2>
         <div className="relative z-0 divide-y divide-pitch-mid/20">
           {matches.map((m) => (
-            <MatchListRow key={m.id} match={m} />
+            <MatchListRow key={m.id} match={m} result={resultsMap?.get(m.id)} />
           ))}
         </div>
       </section>
@@ -37,7 +40,7 @@ export function MatchDayBlock({ date, matches, viewMode }: Props) {
       <h2 className="font-display text-base capitalize text-gold sm:text-lg">{label}</h2>
       <div className="space-y-4">
         {matches.map((m) => (
-          <MatchCard key={m.id} match={m} />
+          <MatchCard key={m.id} match={m} result={resultsMap?.get(m.id)} />
         ))}
       </div>
     </section>

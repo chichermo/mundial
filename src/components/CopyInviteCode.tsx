@@ -12,9 +12,9 @@ export function CopyInviteCode({ code }: Props) {
   async function copy() {
     const url =
       typeof window !== "undefined"
-        ? `${window.location.origin}/polla/grupos`
+        ? `${window.location.origin}/unirse`
         : code;
-    const text = `Únete a mi polla WE26\nCódigo: ${code}\n${url}`;
+    const text = `Únete a la polla WE26 Balsuos\n${url}\nCódigo (opcional): ${code}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

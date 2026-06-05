@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { ExportRankingButton } from "@/components/ExportRankingButton";
 import type { LiveStandings } from "@/lib/groups";
 
 type Props = {
@@ -75,7 +77,10 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
             {data.groupStageComplete ? " · Fase de grupos cerrada" : " · Fase de grupos en curso"}
           </p>
         </div>
-        <p className="text-[10px] text-muted">
+        <div className="flex items-center gap-2">
+          <ExportRankingButton targetId="live-standings-export" />
+        </div>
+        <p className="text-[10px] text-muted sm:col-span-2">
           Actualiza cada 12 s
           {lastRefresh && (
             <>
@@ -88,7 +93,7 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
       </div>
 
       {/* Ranking */}
-      <div className="card-pitch overflow-x-auto">
+      <div id="live-standings-export" className="card-pitch overflow-x-auto">
         <table className="w-full min-w-[320px] text-left text-sm">
           <thead>
             <tr className="border-b border-pitch-mid/60 bg-pitch/60 text-xs uppercase tracking-wider text-muted">
@@ -109,7 +114,11 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
                 }`}
               >
                 <td className="px-3 py-2.5 font-display text-lg text-gold">{row.rank}</td>
-                <td className="px-3 py-2.5 font-medium text-cream">{row.name}</td>
+                <td className="px-3 py-2.5 font-medium text-cream">
+                  <Link href={`/polla/jugador/${row.id}`} className="hover:text-lime hover:underline">
+                    {row.name}
+                  </Link>
+                </td>
                 <td className="px-3 py-2.5 text-right tabular-nums">{row.groupPts}</td>
                 {!compact && (
                   <td className="hidden px-3 py-2.5 text-right tabular-nums text-muted sm:table-cell">
@@ -161,7 +170,9 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
               {data.rows.map((row) => (
                 <tr key={row.id} className="border-b border-pitch-mid/20">
                   <td className="sticky left-0 z-10 max-w-[5rem] truncate bg-pitch-light/95 px-2 py-1.5 font-medium text-cream">
-                    {row.name}
+                    <Link href={`/polla/jugador/${row.id}`} className="hover:text-lime">
+                      {row.name}
+                    </Link>
                   </td>
                   {row.matchCells.map((cell) => (
                     <td
