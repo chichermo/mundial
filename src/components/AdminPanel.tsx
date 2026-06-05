@@ -35,13 +35,20 @@ export function AdminPanel({ results, tournament }: Props) {
   const [importJson, setImportJson] = useState("");
   const [featuredId, setFeaturedId] = useState("");
   const [logs, setLogs] = useState<{ action: string; detail: string; createdAt: string }[]>([]);
+  const [syncStatus, setSyncStatus] = useState("");
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [apiConfigured, setApiConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/logs")
       .then((r) => (r.ok ? r.json() : { logs: [] }))
       .then((d) => setLogs(d.logs ?? []))
       .catch(() => {});
-  }, [status]);
+    fetch("/api/admin/sync")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setApiConfigured(d?.configured ?? false))
+      .catch(() => setApiConfigured(false));
+  }, [status, syncStatus]);
 
   const filtered = matches.filter((m) => phase === "all" || m.phase === phase);
 
@@ -100,6 +107,25 @@ export function AdminPanel({ results, tournament }: Props) {
     }
   }
 
+  async function syncApiFootball() {
+    setSyncLoading(true);
+    setSyncStatus("");
+    try {
+      const res = await fetch("/api/admin/sync", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error de sincronización");
+      setSyncStatus(
+        `Sincronizado: ${data.updated} partidos · ${data.unmapped} sin mapear · ${data.fixturesFetched} en API`,
+      );
+      setStatus("Resultados actualizados desde API-Football");
+      router.refresh();
+    } catch (err) {
+      setSyncStatus(err instanceof Error ? err.message : "Error");
+    } finally {
+      setSyncLoading(false);
+    }
+  }
+
   async function saveFeatured() {
     const matchId = featuredId ? Number(featuredId) : null;
     const res = await fetch("/api/admin/featured", {
@@ -121,6 +147,33 @@ export function AdminPanel({ results, tournament }: Props) {
       </div>
 
       {status && <p className="text-sm text-lime">{status}</p>}
+
+      <div className="card-pitch space-y-4 p-6">
+        <h2 className="font-display text-xl text-gold">API-Football (automático)</h2>
+        <p className="text-sm text-muted">
+          Sincroniza marcadores del Mundial 2026. Requiere{" "}
+          <code className="text-lime">API_FOOTBALL_KEY</code> en Vercel.
+          {apiConfigured === false && (
+            <span className="mt-1 block text-gold">Clave no detectada en el servidor.</span>
+          )}
+          {apiConfigured === true && (
+            <span className="mt-1 block text-lime">API configurada.</span>
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={syncApiFootball}
+          disabled={syncLoading || apiConfigured === false}
+          className="btn-primary text-sm"
+        >
+          {syncLoading ? "Sincronizando…" : "Sincronizar ahora"}
+        </button>
+        {syncStatus && <p className="text-xs text-muted">{syncStatus}</p>}
+        <p className="text-[10px] text-muted">
+          Cron cada 15 min en Vercel si configuras <code>CRON_SECRET</code>. Mapeo:{" "}
+          <code>npm run fixture-map</code>
+        </p>
+      </div>
 
       <div className="card-pitch grid gap-4 p-6 md:grid-cols-2">
         <h2 className="font-display text-xl text-gold md:col-span-2">Importar resultados (JSON)</h2>

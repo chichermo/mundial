@@ -40,6 +40,23 @@ npm run dev
 
 Ver `.env.example`: `ADMIN_PASSWORD`, `POLL_GROUP_NAME`, `POLL_GROUP_CODE`, `POLL_MAX_MEMBERS`, `POLL_QUALIFIERS`, `DATABASE_AUTH_TOKEN` (Turso).
 
+### API-Football (resultados automáticos)
+
+1. Crea cuenta gratis en [api-football.com](https://www.api-football.com/)
+2. Copia tu API key → `API_FOOTBALL_KEY` en Vercel
+3. Genera el mapeo partido ↔ fixture (una vez, o cuando actualicen el calendario):
+
+```bash
+API_FOOTBALL_KEY=tu_clave npm run fixture-map
+git add src/data/fixture-map.json && git commit -m "Actualizar fixture map"
+```
+
+4. En `/admin` pulsa **Sincronizar ahora**, o configura cron:
+   - `CRON_SECRET` = una clave aleatoria larga
+   - Vercel ejecuta `/api/cron/sync-results` cada 15 min (plan Pro; en Hobby usa sync manual)
+
+La tabla en vivo y la polla se actualizan solas al guardar resultados.
+
 ## Invitación
 
 Comparte `/unirse` — redirige a registro y unión a Balsuos.
