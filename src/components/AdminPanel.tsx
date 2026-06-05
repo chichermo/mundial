@@ -37,7 +37,13 @@ export function AdminPanel({ results, tournament }: Props) {
   const [logs, setLogs] = useState<{ action: string; detail: string; createdAt: string }[]>([]);
   const [syncStatus, setSyncStatus] = useState("");
   const [syncLoading, setSyncLoading] = useState(false);
+  const [ofLoading, setOfLoading] = useState(false);
   const [apiConfigured, setApiConfigured] = useState<boolean | null>(null);
+  const [ofPreview, setOfPreview] = useState<{
+    totalMatches: number;
+    withScores: number;
+    mapping: { mapped: number; total: number };
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/logs")
@@ -48,6 +54,18 @@ export function AdminPanel({ results, tournament }: Props) {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setApiConfigured(d?.configured ?? false))
       .catch(() => setApiConfigured(false));
+    fetch("/api/admin/sync/openfootball")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) =>
+        d
+          ? setOfPreview({
+              totalMatches: d.totalMatches,
+              withScores: d.withScores,
+              mapping: d.mapping,
+            })
+          : null,
+      )
+      .catch(() => {});
   }, [status, syncStatus]);
 
   const filtered = matches.filter((m) => phase === "all" || m.phase === phase);
@@ -107,6 +125,29 @@ export function AdminPanel({ results, tournament }: Props) {
     }
   }
 
+  async function syncOpenFootball() {
+    setOfLoading(true);
+    setSyncStatus("");
+    try {
+      const res = await fetch("/api/admin/sync/openfootball", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error de sincronización");
+      setSyncStatus(
+        `openfootball: ${data.updated} actualizados · ${data.noScores} sin marcador aún · ${data.unmapped} sin mapear`,
+      );
+      setStatus(
+        data.updated > 0
+          ? "Resultados actualizados desde openfootball"
+          : "Sin marcadores nuevos en openfootball (normal antes del torneo)",
+      );
+      router.refresh();
+    } catch (err) {
+      setSyncStatus(err instanceof Error ? err.message : "Error");
+    } finally {
+      setOfLoading(false);
+    }
+  }
+
   async function syncApiFootball() {
     setSyncLoading(true);
     setSyncStatus("");
@@ -115,7 +156,7 @@ export function AdminPanel({ results, tournament }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error de sincronización");
       setSyncStatus(
-        `Sincronizado: ${data.updated} partidos · ${data.unmapped} sin mapear · ${data.fixturesFetched} en API`,
+        `API-Football: ${data.updated} partidos · ${data.unmapped} sin mapear · ${data.totalFetched} en API`,
       );
       setStatus("Resultados actualizados desde API-Football");
       router.refresh();
@@ -149,10 +190,44 @@ export function AdminPanel({ results, tournament }: Props) {
       {status && <p className="text-sm text-lime">{status}</p>}
 
       <div className="card-pitch space-y-4 p-6">
-        <h2 className="font-display text-xl text-gold">API-Football (automático)</h2>
+        <h2 className="font-display text-xl text-gold">openfootball (recomendado · gratis)</h2>
         <p className="text-sm text-muted">
-          Sincroniza marcadores del Mundial 2026. Requiere{" "}
-          <code className="text-lime">API_FOOTBALL_KEY</code> en Vercel.
+          Lee el JSON público de{" "}
+          <a
+            href="https://github.com/openfootball/worldcup.json"
+            className="text-lime underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            openfootball/worldcup.json
+          </a>
+          . Sin API key. Los marcadores aparecen en <code>score.ft</code> cuando la comunidad los
+          publica.
+        </p>
+        {ofPreview && (
+          <p className="text-xs text-muted">
+            {ofPreview.totalMatches} partidos en fuente · {ofPreview.withScores} con marcador ·{" "}
+            {ofPreview.mapping.mapped}/{ofPreview.mapping.total} mapeados a WE26
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={syncOpenFootball}
+          disabled={ofLoading}
+          className="btn-primary text-sm"
+        >
+          {ofLoading ? "Sincronizando…" : "Sincronizar openfootball"}
+        </button>
+        {syncStatus && <p className="text-xs text-muted">{syncStatus}</p>}
+        <p className="text-[10px] text-muted">
+          El cron de Vercel usa openfootball primero (solo <code>CRON_SECRET</code>).
+        </p>
+      </div>
+
+      <div className="card-pitch space-y-4 p-6">
+        <h2 className="font-display text-xl text-gold">API-Football (opcional)</h2>
+        <p className="text-sm text-muted">
+          Alternativa con clave. El plan free puede no incluir temporada 2026 aún.
           {apiConfigured === false && (
             <span className="mt-1 block text-gold">Clave no detectada en el servidor.</span>
           )}
@@ -164,15 +239,10 @@ export function AdminPanel({ results, tournament }: Props) {
           type="button"
           onClick={syncApiFootball}
           disabled={syncLoading || apiConfigured === false}
-          className="btn-primary text-sm"
+          className="btn-ghost text-sm"
         >
-          {syncLoading ? "Sincronizando…" : "Sincronizar ahora"}
+          {syncLoading ? "Sincronizando…" : "Sincronizar API-Football"}
         </button>
-        {syncStatus && <p className="text-xs text-muted">{syncStatus}</p>}
-        <p className="text-[10px] text-muted">
-          Cron cada 15 min en Vercel si configuras <code>CRON_SECRET</code>. Mapeo:{" "}
-          <code>npm run fixture-map</code>
-        </p>
       </div>
 
       <div className="card-pitch grid gap-4 p-6 md:grid-cols-2">

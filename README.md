@@ -40,24 +40,25 @@ npm run dev
 
 Ver `.env.example`: `ADMIN_PASSWORD`, `POLL_GROUP_NAME`, `POLL_GROUP_CODE`, `POLL_MAX_MEMBERS`, `POLL_QUALIFIERS`, `DATABASE_AUTH_TOKEN` (Turso).
 
-### API-Football (resultados automáticos)
+### openfootball (resultados automáticos · recomendado)
 
-1. Crea cuenta gratis en [api-football.com](https://www.api-football.com/)
-2. Copia tu API key → `API_FOOTBALL_KEY` en Vercel
-3. Genera el mapeo partido ↔ fixture (una vez, o cuando actualicen el calendario):
+Sin API key. Lee el JSON público de [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json).
 
-```bash
-API_FOOTBALL_KEY=tu_clave npm run fixture-map
-git add src/data/fixture-map.json && git commit -m "Actualizar fixture map"
-```
-
-4. En `/admin` pulsa **Sincronizar ahora**, o configura cron:
+1. En `/admin` pulsa **Sincronizar openfootball**
+2. Para cron automático en Vercel:
    - `CRON_SECRET` = una clave aleatoria larga
-   - Vercel ejecuta `/api/cron/sync-results` cada 15 min (plan Pro; en Hobby usa sync manual)
+   - Vercel ejecuta `/api/cron/sync-results` cada 15 min (openfootball primero; API-Football solo si hay `API_FOOTBALL_KEY`)
 
-La tabla en vivo y la polla se actualizan solas al guardar resultados.
+Opcional: `OPENFOOTBALL_URL` para apuntar a otro mirror del JSON.
 
-**Nota plan Free:** a fecha de hoy API-Football puede limitar `season=2026` al plan de pago. La clave queda lista en Vercel; cuando habiliten 2026 en free (cerca del torneo), `npm run fixture-map` y el sync automático funcionarán. Hasta entonces usa `/admin` manual.
+Los marcadores aparecen en `score.ft` cuando la comunidad los publica (antes del torneo puede devolver 0 actualizaciones).
+
+### API-Football (opcional)
+
+1. Crea cuenta en [api-football.com](https://www.api-football.com/) → `API_FOOTBALL_KEY`
+2. Mapeo fixture (si el plan incluye 2026): `API_FOOTBALL_KEY=tu_clave npm run fixture-map`
+
+**Nota plan Free:** puede no incluir `season=2026` aún. openfootball cubre el sync sin clave.
 
 ## Invitación
 

@@ -17,6 +17,7 @@ const TO_LOCAL: Record<string, string> = {
   "congo democratic republic": "Congo DR",
   "bosnia-herzegovina": "Bosnia and Herzegovina",
   "bosnia and herzegovina": "Bosnia and Herzegovina",
+  "bosnia & herzegovina": "Bosnia and Herzegovina",
   mexico: "Mexico",
   "south africa": "South Africa",
   "south korea": "South Korea",

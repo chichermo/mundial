@@ -8,16 +8,7 @@ import { getMatch } from "@/lib/matches-data";
 import { resolveMatchId } from "@/lib/fixture-map";
 import { normalizeTeamName } from "@/lib/team-aliases";
 import { prisma } from "@/lib/prisma";
-
-export type SyncResult = {
-  ok: boolean;
-  updated: number;
-  skipped: number;
-  unmapped: number;
-  fixturesFetched: number;
-  details: string[];
-  error?: string;
-};
+import type { SyncResult } from "@/lib/sync-types";
 
 function winnerLabel(fixture: ApiFixtureItem, matchId: number): string | null {
   const match = getMatch(matchId);
@@ -95,10 +86,12 @@ export async function syncResultsFromApiFootball(apiKey: string): Promise<SyncRe
 
     return {
       ok: true,
+      source: "api-football",
       updated,
       skipped,
       unmapped,
-      fixturesFetched: fixtures.length,
+      noScores: 0,
+      totalFetched: fixtures.length,
       details: details.slice(0, 20),
     };
   } catch (err) {
@@ -106,10 +99,12 @@ export async function syncResultsFromApiFootball(apiKey: string): Promise<SyncRe
     await logAdminChange("api_sync_error", message);
     return {
       ok: false,
+      source: "api-football",
       updated,
       skipped,
       unmapped,
-      fixturesFetched: 0,
+      noScores: 0,
+      totalFetched: 0,
       details,
       error: message,
     };
