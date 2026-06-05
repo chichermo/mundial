@@ -1,16 +1,24 @@
 import type { MatchPrediction, TournamentPick } from "@prisma/client";
 
-/** Reglas típicas de polla latina */
+/** Reglas polla Balsuos: L/E/V = 2 pts, marcador exacto = 5 pts */
 export const SCORING_RULES = {
-  exactScore: 3,
-  correctResult: 1,
+  exactScore: 5,
+  correctResult: 2,
+  knockoutWinner: 2,
   champion: 10,
   surprise: 6,
   revelationTeam: 6,
   topScorer: 8,
   revelationPlayer: 6,
-  knockoutWinner: 2,
 } as const;
+
+export type MatchOutcome = "L" | "E" | "V";
+
+export function getMatchOutcome(homeScore: number, awayScore: number): MatchOutcome {
+  if (homeScore > awayScore) return "L";
+  if (homeScore < awayScore) return "V";
+  return "E";
+}
 
 export function getMatchPoints(
   pred: Pick<MatchPrediction, "homeScore" | "awayScore">,

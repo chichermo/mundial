@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { CopyInviteCode } from "@/components/CopyInviteCode";
 import { EnableNotificationsButton } from "@/components/PredictionReminders";
 import { LeaveGroupButton } from "@/components/LeaveGroupButton";
+import { LiveStandingsTable } from "@/components/LiveStandingsTable";
 import { PollaDashboard } from "@/components/PollaDashboard";
 import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -67,6 +68,8 @@ export default async function PollaPage() {
       <CopyInviteCode code={polla.groupCode} />
       <PollaProgressCard progress={progress} />
 
+      <LiveStandingsTable highlightId={member.id} compact />
+
       <PollaDashboard
         memberId={member.id}
         predictions={member.matchPredictions.map((p) => ({
@@ -76,7 +79,6 @@ export default async function PollaPage() {
         }))}
         knockout={knockout}
         tournament={member.tournamentPick ?? {}}
-        leaderboard={leaderboard}
         progress={progress}
       />
     </div>

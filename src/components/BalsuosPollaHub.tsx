@@ -88,7 +88,9 @@ export function BalsuosPollaHub({
           <h2 className="mt-2 font-display text-4xl text-gradient-gold sm:text-5xl">
             {groupName}
           </h2>
-          <p className="mt-2 text-sm text-muted">{memberCount} jugadores inscritos</p>
+          <p className="mt-2 text-sm text-muted">
+            {memberCount}/8 jugadores · top 4 clasifican a eliminatoria
+          </p>
         </div>
 
         <div className="space-y-5 p-5 sm:p-6">

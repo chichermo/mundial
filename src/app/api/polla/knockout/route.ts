@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isMemberQualifiedForKnockout } from "@/lib/groups";
 import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
 
@@ -18,6 +19,14 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+  }
+
+  const qualified = await isMemberQualifiedForKnockout(session.memberId, session.groupId);
+  if (!qualified) {
+    return NextResponse.json(
+      { error: "Solo los 4 clasificados pueden pronosticar la eliminatoria" },
+      { status: 403 },
+    );
   }
 
   await prisma.knockoutPrediction.upsert({

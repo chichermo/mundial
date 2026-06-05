@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
 import { KnockoutPicks } from "./KnockoutPicks";
-import { Leaderboard } from "./Leaderboard";
+import { LiveStandingsTable } from "./LiveStandingsTable";
 import { MatchCard } from "./MatchCard";
 import { TournamentPicksForm } from "./TournamentPicksForm";
 
@@ -25,16 +25,6 @@ type Props = {
     topScorer?: string | null;
     revelationPlayer?: string | null;
   };
-  leaderboard: {
-    id: string;
-    name: string;
-    matchPts: number;
-    knockoutPts: number;
-    tournamentPts: number;
-    total: number;
-    predictions: number;
-    maxMatches: number;
-  }[];
   progress: Progress;
 };
 
@@ -45,7 +35,6 @@ export function PollaDashboard({
   predictions,
   knockout,
   tournament,
-  leaderboard,
   progress,
 }: Props) {
   const [tab, setTab] = useState<Tab>("partidos");
@@ -114,8 +103,8 @@ export function PollaDashboard({
       {tab === "partidos" && (
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            Pronostica antes del pitido. <strong className="text-lime">+3</strong> marcador exacto,{" "}
-            <strong className="text-lime">+1</strong> resultado.
+            Pronostica antes del pitido. <strong className="text-lime">+5</strong> marcador exacto,{" "}
+            <strong className="text-gold">+2</strong> aciertas L/E/V (local, empate o visitante).
           </p>
           {groupMatches.map((m) => (
             <MatchCard
@@ -133,7 +122,7 @@ export function PollaDashboard({
 
       {tab === "especiales" && <TournamentPicksForm initial={tournament} />}
 
-      {tab === "ranking" && <Leaderboard rows={leaderboard} highlightId={memberId} />}
+      {tab === "ranking" && <LiveStandingsTable highlightId={memberId} />}
     </div>
   );
 }

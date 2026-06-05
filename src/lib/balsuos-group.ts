@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { joinGroupWithCode } from "@/lib/polla-groups";
+import { POLL_CONFIG } from "@/lib/poll-config";
 export const BALSUOS_GROUP_NAME = process.env.POLL_GROUP_NAME?.trim() || "Balsuos";
 export const BALSUOS_GROUP_CODE = (
   process.env.POLL_GROUP_CODE?.trim().toUpperCase() || "BALSUO"
@@ -38,6 +39,16 @@ export async function getBalsuosGroupPublic() {
 
 export async function joinBalsuosGroup(userId: string, displayName: string) {
   await ensureBalsuosGroup();
+  const group = await prisma.pollaGroup.findUnique({
+    where: { code: BALSUOS_GROUP_CODE },
+    include: { members: true },
+  });
+  if (group) {
+    const alreadyIn = group.members.some((m) => m.userId === userId);
+    if (!alreadyIn && group.members.length >= POLL_CONFIG.maxMembers) {
+      return { error: `El grupo ya tiene ${POLL_CONFIG.maxMembers} jugadores.` };
+    }
+  }
   return joinGroupWithCode(userId, displayName, BALSUOS_GROUP_CODE);
 }
 
