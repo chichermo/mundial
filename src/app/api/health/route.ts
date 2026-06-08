@@ -35,7 +35,7 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       db: true,
-      build: "2026-06-08",
+      build: "2026-06-08b",
       env: { libsql: url.startsWith("libsql:"), hasToken },
     });
   } catch (err) {
