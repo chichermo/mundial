@@ -32,13 +32,24 @@ Reglas: `/polla/reglas`
 
 **Vercel (obligatorio para login/registro):**
 
-```bash
-# 1. Crea DB gratis en turso.tech y copia URL + token a Vercel
-# 2. Aplica el schema (una vez, desde tu PC):
-DATABASE_URL="libsql://..." DATABASE_AUTH_TOKEN="..." npx prisma db push
+1. Crea DB gratis en [turso.tech](https://turso.tech) → copia URL (`libsql://...`) y token
+2. Añade en Vercel: `DATABASE_URL` + `DATABASE_AUTH_TOKEN`
+3. Aplica el schema **una vez**. Lo más fácil: añade en tu `.env` local (no lo subas a git):
+
+```env
+TURSO_DATABASE_URL="libsql://tu-db.turso.io"
+TURSO_AUTH_TOKEN="tu-token"
 ```
 
-Sin Turso en producción, `/api/auth/login` y `/api/auth/register` fallan con error de base de datos.
+Luego:
+
+```powershell
+npm run db:push:turso
+```
+
+> Si PowerShell muestra `>>`, pulsaste Enter sin cerrar comillas: **Ctrl+C** y usa `.env` en lugar de pegar el token en la terminal.
+
+Sin Turso en producción, login/registro fallan.
 
 ```bash
 npm install

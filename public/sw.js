@@ -1,4 +1,4 @@
-const CACHE = "we26-v2";
+const CACHE = "we26-v3";
 const ASSETS = [
   "/",
   "/calendario",
@@ -27,10 +27,12 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.pathname.startsWith("/api/")) return;
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
   event.respondWith(
     fetch(event.request)
       .then((res) => {
+        if (!res.ok) return res;
         const clone = res.clone();
         caches.open(CACHE).then((cache) => cache.put(event.request, clone));
         return res;

@@ -10,6 +10,7 @@
     "test": "tsx --test src/lib/*.test.ts",
     "fixture-map": "node scripts/build-fixture-map.mjs",
     "db:push": "prisma db push",
+    "db:push:turso": "node scripts/push-schema-turso.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },
