@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getMatch } from "@/lib/matches-data";
 import { requirePollaMember } from "@/lib/require-auth";
-import { isMatchLocked } from "@/lib/timezones";
+import { isPredictionLocked } from "@/lib/match-lock";
 
 export async function GET(req: Request) {
   const auth = await requirePollaMember();
@@ -12,8 +12,8 @@ export async function GET(req: Request) {
   const match = getMatch(matchId);
   if (!match) return NextResponse.json({ error: "Partido no encontrado" }, { status: 404 });
 
-  const locked = isMatchLocked(match.date, match.kickoffEst);
   const result = await prisma.matchResult.findUnique({ where: { matchId } });
+  const locked = isPredictionLocked(match, result);
 
   const members = await prisma.member.findMany({
     where: { groupId: auth.polla.groupId },

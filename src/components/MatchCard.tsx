@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Match } from "@/lib/matches-data";
 import { getPhaseLabel } from "@/lib/matches-data";
-import { isMatchLocked } from "@/lib/timezones";
+import { isPredictionLocked, lockReason } from "@/lib/match-lock";
+import { resizeScorerSlots } from "@/lib/scorers";
 import { useCountdown } from "@/hooks/useCountdown";
 import { BroadcastPanel } from "./BroadcastPanel";
 import { MatchComments } from "./MatchComments";
@@ -11,14 +12,69 @@ import { MatchCompare } from "./MatchCompare";
 import { MatchStatusBadge } from "./MatchStatusBadge";
 import { TimezoneStrip } from "./TimezoneStrip";
 
+export type PredictionData = {
+  homeScore: number;
+  awayScore: number;
+  homeScorers?: string[];
+  awayScorers?: string[];
+};
+
 type Props = {
   match: Match;
-  prediction?: { homeScore: number; awayScore: number };
-  onPredict?: (matchId: number, home: number, away: number) => Promise<void>;
+  prediction?: PredictionData;
+  onPredict?: (
+    matchId: number,
+    home: number,
+    away: number,
+    homeScorers: string[],
+    awayScorers: string[],
+  ) => Promise<void>;
   showPrediction?: boolean;
   showSocial?: boolean;
   result?: { homeScore: number | null; awayScore: number | null } | null;
 };
+
+function ScorerInputs({
+  teamLabel,
+  count,
+  values,
+  disabled,
+  onChange,
+}: {
+  teamLabel: string;
+  count: number;
+  values: string[];
+  disabled: boolean;
+  onChange: (next: string[]) => void;
+}) {
+  if (count <= 0) return null;
+
+  return (
+    <div className="w-full space-y-2">
+      <p className="text-xs text-muted">
+        Goleadores {teamLabel} ({count} {count === 1 ? "gol" : "goles"})
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        {values.map((val, i) => (
+          <input
+            key={i}
+            type="text"
+            maxLength={80}
+            disabled={disabled}
+            value={val}
+            placeholder={`Jugador ${i + 1}`}
+            onChange={(e) => {
+              const next = [...values];
+              next[i] = e.target.value;
+              onChange(next);
+            }}
+            className="min-h-10 flex-1 rounded-lg border border-pitch-mid bg-pitch px-3 py-2 text-sm text-cream disabled:opacity-50 sm:min-w-[140px] sm:max-w-[200px]"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function MatchCard({
   match,
@@ -31,19 +87,43 @@ export function MatchCard({
   const [expanded, setExpanded] = useState(false);
   const [home, setHome] = useState(prediction?.homeScore ?? 0);
   const [away, setAway] = useState(prediction?.awayScore ?? 0);
+  const [homeScorers, setHomeScorers] = useState<string[]>(
+    resizeScorerSlots(prediction?.homeScorers ?? [], prediction?.homeScore ?? 0),
+  );
+  const [awayScorers, setAwayScorers] = useState<string[]>(
+    resizeScorerSlots(prediction?.awayScorers ?? [], prediction?.awayScore ?? 0),
+  );
   const [saving, setSaving] = useState(false);
-  const locked = isMatchLocked(match.date, match.kickoffEst);
+  const [error, setError] = useState("");
+
+  const locked = isPredictionLocked(match, result);
+  const closedLabel = lockReason(match, result);
   const countdown = useCountdown(match.date, match.kickoffEst, !result?.homeScore);
+
+  useEffect(() => {
+    setHomeScorers((prev) => resizeScorerSlots(prev, home));
+  }, [home]);
+
+  useEffect(() => {
+    setAwayScorers((prev) => resizeScorerSlots(prev, away));
+  }, [away]);
 
   async function save() {
     if (!onPredict || locked) return;
     setSaving(true);
+    setError("");
     try {
-      await onPredict(match.id, home, away);
+      await onPredict(match.id, home, away, homeScorers, awayScorers);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo guardar");
     } finally {
       setSaving(false);
     }
   }
+
+  const savedScorers =
+    prediction &&
+    ((prediction.homeScorers?.length ?? 0) > 0 || (prediction.awayScorers?.length ?? 0) > 0);
 
   return (
     <article
@@ -69,7 +149,10 @@ export function MatchCard({
         <div className="shrink-0 text-left text-xs text-muted sm:text-right">
           <div className="mb-1 flex flex-wrap gap-1 sm:justify-end">
             <MatchStatusBadge match={match} result={result} />
-            {countdown && <span className="text-gold">{countdown}</span>}
+            {countdown && !locked && <span className="text-gold">{countdown}</span>}
+            {locked && closedLabel && (
+              <span className="rounded bg-pitch-mid/80 px-2 py-0.5 text-gold">{closedLabel}</span>
+            )}
           </div>
           <p className="break-words">{match.venue}</p>
           <p>{match.city}</p>
@@ -81,9 +164,9 @@ export function MatchCard({
       </div>
 
       {showPrediction && onPredict && (
-        <div className="flex flex-col gap-3 border-t border-pitch-mid/40 bg-pitch/40 px-3 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:px-4 md:px-5">
+        <div className="flex flex-col gap-4 border-t border-pitch-mid/40 bg-pitch/40 px-3 py-4 sm:px-4 md:px-5">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="w-full text-sm text-muted sm:w-auto">Tu pronóstico</span>
+            <span className="w-full text-sm text-muted sm:w-auto">Marcador</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -92,9 +175,9 @@ export function MatchCard({
                 inputMode="numeric"
                 value={home}
                 disabled={locked}
-                onChange={(e) => setHome(Number(e.target.value))}
-                className="h-11 w-14 rounded-lg border border-pitch-mid bg-pitch px-2 text-center text-lg text-cream focus:ring-2 focus:ring-lime"
-                aria-label="Goles local"
+                onChange={(e) => setHome(Math.max(0, Math.min(15, Number(e.target.value) || 0)))}
+                className="h-11 w-14 rounded-lg border border-pitch-mid bg-pitch px-2 text-center text-lg text-cream focus:ring-2 focus:ring-lime disabled:opacity-50"
+                aria-label={`Goles ${match.home}`}
               />
               <span className="text-muted">-</span>
               <input
@@ -104,25 +187,43 @@ export function MatchCard({
                 inputMode="numeric"
                 value={away}
                 disabled={locked}
-                onChange={(e) => setAway(Number(e.target.value))}
-                className="h-11 w-14 rounded-lg border border-pitch-mid bg-pitch px-2 text-center text-lg text-cream focus:ring-2 focus:ring-lime"
-                aria-label="Goles visita"
+                onChange={(e) => setAway(Math.max(0, Math.min(15, Number(e.target.value) || 0)))}
+                className="h-11 w-14 rounded-lg border border-pitch-mid bg-pitch px-2 text-center text-lg text-cream focus:ring-2 focus:ring-lime disabled:opacity-50"
+                aria-label={`Goles ${match.away}`}
               />
             </div>
+            <button
+              type="button"
+              onClick={save}
+              disabled={locked || saving}
+              className="btn-primary w-full text-sm sm:ml-auto sm:w-auto sm:!min-h-10"
+            >
+              {locked ? "Cerrado" : saving ? "Guardando…" : "Guardar"}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={save}
-            disabled={locked || saving}
-            className="btn-primary w-full text-sm sm:w-auto sm:!min-h-10"
-          >
-            {locked ? "Cerrado" : saving ? "Guardando…" : "Guardar"}
-          </button>
+
+          <ScorerInputs
+            teamLabel={match.home}
+            count={home}
+            values={homeScorers}
+            disabled={locked}
+            onChange={setHomeScorers}
+          />
+          <ScorerInputs
+            teamLabel={match.away}
+            count={away}
+            values={awayScorers}
+            disabled={locked}
+            onChange={setAwayScorers}
+          />
+
           {prediction && (
-            <span className="text-center text-xs text-muted sm:text-left">
+            <p className="text-xs text-muted">
               Guardado: {prediction.homeScore}-{prediction.awayScore}
-            </span>
+              {savedScorers && " · con goleadores"}
+            </p>
           )}
+          {error && <p className="text-xs text-red-300">{error}</p>}
         </div>
       )}
 

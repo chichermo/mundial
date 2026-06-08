@@ -2,12 +2,15 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
+import type { PredictionData } from "./MatchCard";
 import { KnockoutPicks } from "./KnockoutPicks";
 import { LiveStandingsTable } from "./LiveStandingsTable";
 import { MatchCard } from "./MatchCard";
 import { TournamentPicksForm } from "./TournamentPicksForm";
 
-type Prediction = { matchId: number; homeScore: number; awayScore: number };
+type Prediction = PredictionData & { matchId: number };
+
+type ResultMap = Record<number, { homeScore: number | null; awayScore: number | null }>;
 
 type Progress = {
   group: { done: number; total: number; pct: number };
@@ -18,6 +21,7 @@ type Props = {
   memberId: string;
   predictions: Prediction[];
   knockout: Record<number, string>;
+  results: ResultMap;
   tournament: {
     champion?: string | null;
     surprise?: string | null;
@@ -34,6 +38,7 @@ export function PollaDashboard({
   memberId,
   predictions,
   knockout,
+  results,
   tournament,
   progress,
 }: Props) {
@@ -43,13 +48,30 @@ export function PollaDashboard({
     [predictions],
   );
 
-  const onPredict = useCallback(async (matchId: number, home: number, away: number) => {
-    await fetch("/api/polla/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matchId, homeScore: home, awayScore: away }),
-    });
-  }, []);
+  const onPredict = useCallback(
+    async (
+      matchId: number,
+      home: number,
+      away: number,
+      homeScorers: string[],
+      awayScorers: string[],
+    ) => {
+      const res = await fetch("/api/polla/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId,
+          homeScore: home,
+          awayScore: away,
+          homeScorers,
+          awayScorers,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Error al guardar");
+    },
+    [],
+  );
 
   const groupMatches = matches.filter((m) => m.phase === "group");
 
@@ -103,8 +125,9 @@ export function PollaDashboard({
       {tab === "partidos" && (
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            Pronostica antes del pitido. <strong className="text-lime">+5</strong> marcador exacto,{" "}
-            <strong className="text-gold">+2</strong> aciertas L/E/V (local, empate o visitante).
+            Pronostica antes del pitido. Marcador: <strong className="text-lime">+5</strong> exacto,{" "}
+            <strong className="text-gold">+2</strong> L/E/V. Opcional: indica goleadores por equipo.
+            Una vez comenzado el partido o con resultado cargado, queda cerrado.
           </p>
           {groupMatches.map((m) => (
             <MatchCard
@@ -113,13 +136,16 @@ export function PollaDashboard({
               showPrediction
               showSocial
               prediction={predMap.get(m.id)}
+              result={results[m.id] ?? null}
               onPredict={onPredict}
             />
           ))}
         </div>
       )}
 
-      {tab === "eliminatoria" && <KnockoutPicks initial={knockout} />}
+      {tab === "eliminatoria" && (
+        <KnockoutPicks initial={knockout} results={results} />
+      )}
 
       {tab === "especiales" && <TournamentPicksForm initial={tournament} />}
 

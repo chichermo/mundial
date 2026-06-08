@@ -47,13 +47,15 @@ model Member {
 }
 
 model MatchPrediction {
-  id        String   @id @default(cuid())
-  memberId  String
-  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  matchId   Int
-  homeScore Int
-  awayScore Int
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  matchId     Int
+  homeScore   Int
+  awayScore   Int
+  homeScorers String   @default("[]")
+  awayScorers String   @default("[]")
+  updatedAt   DateTime @updatedAt
 
   @@unique([memberId, matchId])
 }

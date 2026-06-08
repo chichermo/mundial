@@ -105,6 +105,26 @@ try {
   process.exit(1);
 }
 
+const INCREMENTAL = [
+  `ALTER TABLE "MatchPrediction" ADD COLUMN "homeScorers" TEXT NOT NULL DEFAULT '[]'`,
+  `ALTER TABLE "MatchPrediction" ADD COLUMN "awayScorers" TEXT NOT NULL DEFAULT '[]'`,
+];
+
+console.log("→ Migraciones incrementales…");
+for (const stmt of INCREMENTAL) {
+  try {
+    await client.execute(stmt);
+    console.log("   +", stmt.slice(0, 60), "…");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes("duplicate column")) {
+      console.log("   · columna ya existe");
+    } else {
+      console.log("   ·", msg.slice(0, 80));
+    }
+  }
+}
+
 console.log(`→ Aplicando ${statements.length} sentencias…`);
 
 let applied = 0;

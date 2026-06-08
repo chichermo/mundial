@@ -10,6 +10,7 @@ import { PollaDashboard } from "@/components/PollaDashboard";
 import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getLeaderboard } from "@/lib/groups";
+import { parseScorersJson } from "@/lib/scorers";
 import { getPollaProgress } from "@/lib/polla-progress";
 import { prisma } from "@/lib/prisma";
 import { getPollaSession, getUserSession } from "@/lib/session";
@@ -35,6 +36,12 @@ export default async function PollaPage() {
   const knockout: Record<number, string> = {};
   for (const k of member.knockoutPredictions) {
     knockout[k.matchId] = k.winnerLabel;
+  }
+
+  const allResults = await prisma.matchResult.findMany();
+  const results: Record<number, { homeScore: number | null; awayScore: number | null }> = {};
+  for (const r of allResults) {
+    results[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
   }
 
   const leaderboard = await getLeaderboard(polla.groupId);
@@ -80,8 +87,11 @@ export default async function PollaPage() {
           matchId: p.matchId,
           homeScore: p.homeScore,
           awayScore: p.awayScore,
+          homeScorers: parseScorersJson(p.homeScorers),
+          awayScorers: parseScorersJson(p.awayScorers),
         }))}
         knockout={knockout}
+        results={results}
         tournament={member.tournamentPick ?? {}}
         progress={progress}
       />

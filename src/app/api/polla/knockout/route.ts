@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isMemberQualifiedForKnockout } from "@/lib/groups";
+import { isPredictionLocked } from "@/lib/match-lock";
+import { getMatch } from "@/lib/matches-data";
 import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
 
@@ -19,6 +21,22 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+  }
+
+  const match = getMatch(parsed.data.matchId);
+  if (!match) {
+    return NextResponse.json({ error: "Partido no existe" }, { status: 404 });
+  }
+
+  const result = await prisma.matchResult.findUnique({
+    where: { matchId: parsed.data.matchId },
+  });
+
+  if (isPredictionLocked(match, result)) {
+    return NextResponse.json(
+      { error: "Partido cerrado: no se puede modificar el pronóstico" },
+      { status: 403 },
+    );
   }
 
   const qualified = await isMemberQualifiedForKnockout(session.memberId, session.groupId);

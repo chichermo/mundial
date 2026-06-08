@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { isPredictionLocked } from "@/lib/match-lock";
 import { getMatch } from "@/lib/matches-data";
+import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
-import { isMatchLocked } from "@/lib/timezones";
+import { normalizeScorersForGoals, scorersToJson } from "@/lib/scorers";
 
 const schema = z.object({
   matchId: z.number().int().min(1).max(104),
   homeScore: z.number().int().min(0).max(15),
   awayScore: z.number().int().min(0).max(15),
+  homeScorers: z.array(z.string().max(80)).max(15).optional(),
+  awayScorers: z.array(z.string().max(80)).max(15).optional(),
 });
 
 export async function POST(req: Request) {
@@ -28,9 +31,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Partido no existe" }, { status: 404 });
   }
 
-  if (isMatchLocked(match.date, match.kickoffEst)) {
-    return NextResponse.json({ error: "Partido cerrado" }, { status: 403 });
+  const result = await prisma.matchResult.findUnique({
+    where: { matchId: parsed.data.matchId },
+  });
+
+  if (isPredictionLocked(match, result)) {
+    return NextResponse.json(
+      { error: "Partido cerrado: no se puede modificar el pronóstico" },
+      { status: 403 },
+    );
   }
+
+  const scorers = normalizeScorersForGoals(
+    parsed.data.homeScorers ?? [],
+    parsed.data.awayScorers ?? [],
+    parsed.data.homeScore,
+    parsed.data.awayScore,
+  );
 
   await prisma.matchPrediction.upsert({
     where: {
@@ -44,10 +61,14 @@ export async function POST(req: Request) {
       matchId: parsed.data.matchId,
       homeScore: parsed.data.homeScore,
       awayScore: parsed.data.awayScore,
+      homeScorers: scorersToJson(scorers.homeScorers),
+      awayScorers: scorersToJson(scorers.awayScorers),
     },
     update: {
       homeScore: parsed.data.homeScore,
       awayScore: parsed.data.awayScore,
+      homeScorers: scorersToJson(scorers.homeScorers),
+      awayScorers: scorersToJson(scorers.awayScorers),
     },
   });
 
