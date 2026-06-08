@@ -1,4 +1,4 @@
-const CACHE = "we26-v3";
+const CACHE = "we26-v4";
 const ASSETS = [
   "/",
   "/calendario",

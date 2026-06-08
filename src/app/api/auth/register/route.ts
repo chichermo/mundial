@@ -41,7 +41,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (isDbConfigError(err)) return dbErrorResponse(err);
+    const message = err instanceof Error ? err.message : String(err);
     console.error("[auth/register]", err);
-    return NextResponse.json({ error: "Error interno al crear la cuenta." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Error interno al crear la cuenta.", detail: message },
+      { status: 500 },
+    );
   }
 }
