@@ -64,15 +64,32 @@ export default function ReglasPage() {
       </section>
 
       <section className="card-pitch space-y-4 p-6">
-        <h2 className="font-display text-xl text-gold">5. Pronósticos especiales (opcional)</h2>
+        <h2 className="font-display text-xl text-gold">5. Pronósticos especiales</h2>
         <p className="text-sm text-muted">
-          Campeón, goleador, sorpresa, etc. suman puntos extra si el admin define las respuestas
-          correctas en{" "}
+          Opcionales, pero suman al total. Se cierran al <strong className="text-cream">primer pitido</strong>{" "}
+          del Mundial (11 jun 2026). El admin publica las respuestas correctas en{" "}
           <Link href="/admin" className="text-lime underline">
             /admin
           </Link>
           .
         </p>
+        <ul className="space-y-2 text-sm">
+          <li>
+            <strong className="text-lime">+{SCORING_RULES.champion} pts</strong> — campeón
+          </li>
+          <li>
+            <strong className="text-lime">+{SCORING_RULES.topScorer} pts</strong> — goleador del torneo
+          </li>
+          <li>
+            <strong className="text-gold">+{SCORING_RULES.surprise} pts</strong> — selección sorpresa
+          </li>
+          <li>
+            <strong className="text-gold">+{SCORING_RULES.revelationTeam} pts</strong> — selección revelación
+          </li>
+          <li>
+            <strong className="text-gold">+{SCORING_RULES.revelationPlayer} pts</strong> — jugador revelación
+          </li>
+        </ul>
       </section>
     </div>
   );

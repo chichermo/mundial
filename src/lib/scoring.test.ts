@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { getMatchOutcome, getMatchPoints, SCORING_RULES } from "./scoring";
+import { getMatchOutcome, getMatchPoints, getTournamentPoints, SCORING_RULES } from "./scoring";
 
 describe("getMatchPoints", () => {
   it("otorga 5 pts por marcador exacto", () => {
@@ -16,6 +16,43 @@ describe("getMatchPoints", () => {
 
   it("otorga 0 pts si falla", () => {
     const pts = getMatchPoints({ homeScore: 2, awayScore: 1 }, { homeScore: 1, awayScore: 2 });
+    assert.equal(pts, 0);
+  });
+});
+
+describe("getTournamentPoints", () => {
+  it("suma puntos por cada especial acertado", () => {
+    const pts = getTournamentPoints(
+      {
+        champion: "Spain",
+        surprise: "USA",
+        revelationTeam: "Japan",
+        topScorer: "Mbappe",
+        revelationPlayer: "Yamal",
+      } as Parameters<typeof getTournamentPoints>[0],
+      {
+        champion: "Spain",
+        surprise: "USA",
+        revelationTeam: "Japan",
+        topScorer: "Mbappe",
+        revelationPlayer: "Yamal",
+      },
+    );
+    assert.equal(
+      pts,
+      SCORING_RULES.champion +
+        SCORING_RULES.surprise +
+        SCORING_RULES.revelationTeam +
+        SCORING_RULES.topScorer +
+        SCORING_RULES.revelationPlayer,
+    );
+  });
+
+  it("no suma si no hay respuesta oficial", () => {
+    const pts = getTournamentPoints(
+      { champion: "Spain" } as Parameters<typeof getTournamentPoints>[0],
+      {},
+    );
     assert.equal(pts, 0);
   });
 });

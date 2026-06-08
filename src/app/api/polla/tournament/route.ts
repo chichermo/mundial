@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
+import { isTournamentLocked } from "@/lib/tournament-lock";
 
 const schema = z.object({
   champion: z.string().optional(),
@@ -17,6 +18,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Inicia sesión y elige un grupo" }, { status: 401 });
   }
   const session = auth.polla;
+
+  if (isTournamentLocked()) {
+    return NextResponse.json(
+      { error: "Los pronósticos especiales están cerrados desde el inicio del Mundial" },
+      { status: 403 },
+    );
+  }
 
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {

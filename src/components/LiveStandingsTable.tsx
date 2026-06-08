@@ -101,6 +101,7 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
               <th className="px-3 py-2.5">Jugador</th>
               <th className="px-3 py-2.5 text-right">Grupos</th>
               {!compact && <th className="hidden px-3 py-2.5 text-right sm:table-cell">Elim.</th>}
+              <th className="hidden px-3 py-2.5 text-right sm:table-cell">Esp.</th>
               <th className="px-3 py-2.5 text-right">Total</th>
               <th className="px-3 py-2.5 text-center">Estado</th>
             </tr>
@@ -125,6 +126,9 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
                     {row.knockoutPts}
                   </td>
                 )}
+                <td className="hidden px-3 py-2.5 text-right tabular-nums text-muted sm:table-cell">
+                  {row.tournamentPts > 0 ? row.tournamentPts : "·"}
+                </td>
                 <td className="px-3 py-2.5 text-right font-display text-xl tabular-nums text-lime">
                   {row.total}
                 </td>
@@ -195,9 +199,10 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
       )}
 
       <p className="text-[10px] text-muted">
-        Marcador exacto: <strong className="text-lime">5 pts</strong> · Resultado L/E/V:{" "}
-        <strong className="text-gold">2 pts</strong> · Los {data.qualifiersCount} mejores en fase
-        de grupos pasan a la eliminatoria.
+        Marcador exacto: <strong className="text-lime">5 pts</strong> · L/E/V:{" "}
+        <strong className="text-gold">2 pts</strong> · Especiales (campeón, goleador…): hasta{" "}
+        <strong className="text-lime">36 pts</strong> cuando el admin publique las respuestas · Top{" "}
+        {data.qualifiersCount} a eliminatoria.
       </p>
     </div>
   );
