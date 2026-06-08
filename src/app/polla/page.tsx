@@ -9,6 +9,7 @@ import { QualifiersBanner } from "@/components/QualifiersBanner";
 import { PollaDashboard } from "@/components/PollaDashboard";
 import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { getLeaderboard } from "@/lib/groups";
 import { parseScorersJson } from "@/lib/scorers";
 import { getPollaProgress } from "@/lib/polla-progress";
@@ -21,6 +22,8 @@ export default async function PollaPage() {
 
   const polla = await getPollaSession();
   if (!polla) redirect("/polla/grupos");
+
+  await ensureDbSchema();
 
   const member = await prisma.member.findFirst({
     where: { id: polla.memberId, userId: user.userId },

@@ -1,3 +1,4 @@
+import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { getFeaturedMatch } from "@/lib/app-config";
 import { prisma } from "@/lib/prisma";
 import { getTournamentAnswers } from "@/lib/global-answers";
@@ -52,6 +53,8 @@ function isGroupResultComplete(
 }
 
 export async function computeLiveStandings(groupId: string): Promise<LiveStandings> {
+  await ensureDbSchema();
+
   const members = await prisma.member.findMany({
     where: { groupId },
     include: {

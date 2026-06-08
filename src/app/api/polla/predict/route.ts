@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { isPredictionLocked } from "@/lib/match-lock";
 import { getMatch } from "@/lib/matches-data";
 import { prisma } from "@/lib/prisma";
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Inicia sesión y elige un grupo" }, { status: 401 });
   }
   const session = auth.polla;
+  await ensureDbSchema();
 
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isDbConfigError } from "@/lib/api-error";
+import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -31,6 +32,7 @@ export async function GET() {
   }
 
   try {
+    await ensureDbSchema();
     await prisma.user.count();
     return NextResponse.json({
       ok: true,
