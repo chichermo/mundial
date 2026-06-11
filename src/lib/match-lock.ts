@@ -27,9 +27,9 @@ export function lockReason(
   match: MatchSchedule,
   result?: MatchResultLike,
 ): string | null {
-  if (hasOfficialResult(result)) return "Partido finalizado";
+  if (hasOfficialResult(result)) return "Marcador cerrado (partido finalizado)";
   if (Date.now() >= getKickoffUtc(match.date, match.kickoffEst).getTime()) {
-    return "El partido ya comenzó";
+    return "Marcador cerrado (el partido ya comenzó)";
   }
   return null;
 }

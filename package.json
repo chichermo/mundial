@@ -11,6 +11,7 @@
     "fixture-map": "node scripts/build-fixture-map.mjs",
     "db:push": "prisma db push",
     "db:push:turso": "node scripts/push-schema-turso.mjs",
+    "db:migrate:turso": "node scripts/run-turso-migrate.mjs",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },

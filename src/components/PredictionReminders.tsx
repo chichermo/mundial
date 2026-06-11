@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const CHECK_MS = 5 * 60 * 1000;
 const STORAGE_KEY = "we26_last_notify";
@@ -79,6 +79,14 @@ export function PredictionReminders() {
 }
 
 export function EnableNotificationsButton() {
+  const [hide, setHide] = useState(false);
+
+  useEffect(() => {
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      setHide(true);
+    }
+  }, []);
+
   async function enable() {
     if (!("Notification" in window)) {
       alert("Tu navegador no soporta notificaciones.");
@@ -90,12 +98,11 @@ export function EnableNotificationsButton() {
         body: "Te avisaremos 2 h antes si falta un pronóstico.",
         icon: "/icon.svg",
       });
+      setHide(true);
     }
   }
 
-  if (typeof window !== "undefined" && Notification?.permission === "granted") {
-    return null;
-  }
+  if (hide) return null;
 
   return (
     <button type="button" onClick={enable} className="btn-ghost text-xs">

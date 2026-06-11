@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ensureDbSchema } from "@/lib/ensure-db-schema";
+import { isMissingColumnError } from "@/lib/db-errors";
 import { isPredictionLocked } from "@/lib/match-lock";
 import { getMatch } from "@/lib/matches-data";
+import { upsertBasicPrediction } from "@/lib/prediction-upsert";
 import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
 import { normalizeScorersForGoals, scorersToJson } from "@/lib/scorers";
@@ -21,7 +23,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Inicia sesión y elige un grupo" }, { status: 401 });
   }
   const session = auth.polla;
-  await ensureDbSchema();
+  const hasScorerColumns = await ensureDbSchema();
 
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
@@ -39,9 +41,31 @@ export async function POST(req: Request) {
 
   if (isPredictionLocked(match, result)) {
     return NextResponse.json(
-      { error: "Partido cerrado: no se puede modificar el pronóstico" },
+      { error: "Este partido ya comenzó o terminó — no puedes cambiar el marcador" },
       { status: 403 },
     );
+  }
+
+  const scores = {
+    homeScore: parsed.data.homeScore,
+    awayScore: parsed.data.awayScore,
+  };
+
+  const where = {
+    memberId_matchId: {
+      memberId: session.memberId,
+      matchId: parsed.data.matchId,
+    },
+  };
+
+  if (!hasScorerColumns) {
+    await upsertBasicPrediction(
+      session.memberId,
+      parsed.data.matchId,
+      scores.homeScore,
+      scores.awayScore,
+    );
+    return NextResponse.json({ ok: true });
   }
 
   const scorers = normalizeScorersForGoals(
@@ -51,28 +75,31 @@ export async function POST(req: Request) {
     parsed.data.awayScore,
   );
 
-  await prisma.matchPrediction.upsert({
-    where: {
-      memberId_matchId: {
+  const scorerFields = {
+    homeScorers: scorersToJson(scorers.homeScorers),
+    awayScorers: scorersToJson(scorers.awayScorers),
+  };
+
+  try {
+    await prisma.matchPrediction.upsert({
+      where,
+      create: {
         memberId: session.memberId,
         matchId: parsed.data.matchId,
+        ...scores,
+        ...scorerFields,
       },
-    },
-    create: {
-      memberId: session.memberId,
-      matchId: parsed.data.matchId,
-      homeScore: parsed.data.homeScore,
-      awayScore: parsed.data.awayScore,
-      homeScorers: scorersToJson(scorers.homeScorers),
-      awayScorers: scorersToJson(scorers.awayScorers),
-    },
-    update: {
-      homeScore: parsed.data.homeScore,
-      awayScore: parsed.data.awayScore,
-      homeScorers: scorersToJson(scorers.homeScorers),
-      awayScorers: scorersToJson(scorers.awayScorers),
-    },
-  });
+      update: { ...scores, ...scorerFields },
+    });
+  } catch (err) {
+    if (!isMissingColumnError(err)) throw err;
+    await upsertBasicPrediction(
+      session.memberId,
+      parsed.data.matchId,
+      scores.homeScore,
+      scores.awayScore,
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }

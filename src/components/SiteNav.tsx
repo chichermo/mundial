@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { PollaSession, UserSession } from "@/lib/session";
+import { InstallAppButton } from "./InstallAppButton";
 
 const links = [
   { href: "/", label: "Inicio" },
@@ -52,7 +53,7 @@ export function SiteNav({ user, polla }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b border-pitch-mid/50 bg-pitch/95 backdrop-blur-md safe-top">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 md:gap-4 md:px-8 md:py-3">
-        <Link href="/" className="group flex min-w-0 items-center gap-2 sm:gap-3">
+        <Link href="/" className="group flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           <span
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime/15 text-base font-bold text-lime ring-1 ring-lime/30 sm:h-11 sm:w-11 sm:text-lg"
             aria-hidden
@@ -66,6 +67,8 @@ export function SiteNav({ user, polla }: Props) {
             </p>
           </div>
         </Link>
+
+        <InstallAppButton variant="compact" className="hidden min-[420px]:inline-flex" />
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
@@ -90,6 +93,7 @@ export function SiteNav({ user, polla }: Props) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <InstallAppButton variant="compact" className="min-[420px]:hidden" />
           {user ? (
             <>
               {polla && (
@@ -158,6 +162,9 @@ export function SiteNav({ user, polla }: Props) {
             aria-label="Menú móvil"
           >
             <div className="flex flex-col gap-1">
+              <div className="mb-2 px-4">
+                <InstallAppButton variant="default" className="w-full justify-center" />
+              </div>
               {links.map((link) => {
                 const href =
                   link.href === "/polla/grupos" ? pollaHref() : link.href;

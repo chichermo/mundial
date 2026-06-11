@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CountdownBanner } from "@/components/CountdownBanner";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { matches } from "@/lib/matches-data";
 import { getPollaSession, getUserSession } from "@/lib/session";
 
@@ -30,7 +31,7 @@ export default async function HomePage() {
           Calendario con horarios en Chile, España y Bélgica, TV por país y polla con{" "}
           <strong className="text-cream">cuenta propia</strong> para crear grupos e invitar amigos.
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
+        <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
           <Link href="/calendario" className="btn-primary w-full sm:w-auto">
             Ver calendario
           </Link>
@@ -50,6 +51,7 @@ export default async function HomePage() {
               </Link>
             </>
           )}
+          <InstallAppButton className="w-full sm:w-auto" />
         </div>
         <dl className="mt-14 grid grid-cols-3 gap-6 border-t border-pitch-mid/40 pt-10 md:max-w-xl">
           <div>

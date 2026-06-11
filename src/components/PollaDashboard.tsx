@@ -2,11 +2,13 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
-import type { PredictionData } from "./MatchCard";
 import { KnockoutPicks } from "./KnockoutPicks";
 import { LiveStandingsTable } from "./LiveStandingsTable";
-import { MatchCard } from "./MatchCard";
+import { MatchCard, type PredictionData } from "./MatchCard";
 import { TournamentPicksForm } from "./TournamentPicksForm";
+
+const GROUP_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "all"] as const;
+type GroupFilter = (typeof GROUP_LETTERS)[number];
 
 type Prediction = PredictionData & { matchId: number };
 
@@ -43,6 +45,7 @@ export function PollaDashboard({
   progress,
 }: Props) {
   const [tab, setTab] = useState<Tab>("partidos");
+  const [groupFilter, setGroupFilter] = useState<GroupFilter>("A");
   const predMap = useMemo(
     () => new Map(predictions.map((p) => [p.matchId, p])),
     [predictions],
@@ -73,7 +76,11 @@ export function PollaDashboard({
     [],
   );
 
-  const groupMatches = matches.filter((m) => m.phase === "group");
+  const groupMatches = useMemo(() => {
+    const all = matches.filter((m) => m.phase === "group");
+    if (groupFilter === "all") return all;
+    return all.filter((m) => m.group === groupFilter);
+  }, [groupFilter]);
 
   const tabs: { id: Tab; label: string; short: string; badge?: string }[] = [
     {
@@ -126,9 +133,22 @@ export function PollaDashboard({
         <div className="space-y-4">
           <p className="text-sm text-muted">
             Pronostica antes del pitido. Marcador: <strong className="text-lime">+5</strong> exacto,{" "}
-            <strong className="text-gold">+2</strong> L/E/V. Opcional: indica goleadores por equipo.
-            Una vez comenzado el partido o con resultado cargado, queda cerrado.
+            <strong className="text-gold">+2</strong> L/E/V. Opcional: goleadores por equipo.
           </p>
+          <div className="flex flex-wrap gap-1.5">
+            {GROUP_LETTERS.map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGroupFilter(g)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                  groupFilter === g ? "bg-lime text-ink" : "bg-pitch-mid/50 text-muted"
+                }`}
+              >
+                {g === "all" ? "Todos" : `Grupo ${g}`}
+              </button>
+            ))}
+          </div>
           {groupMatches.map((m) => (
             <MatchCard
               key={m.id}

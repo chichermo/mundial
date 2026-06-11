@@ -9,12 +9,14 @@ import { QualifiersBanner } from "@/components/QualifiersBanner";
 import { PollaDashboard } from "@/components/PollaDashboard";
 import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { getLeaderboard } from "@/lib/groups";
-import { parseScorersJson } from "@/lib/scorers";
+import { loadPollaMember } from "@/lib/polla-member";
 import { getPollaProgress } from "@/lib/polla-progress";
 import { prisma } from "@/lib/prisma";
+import { serializePredictions, serializeTournamentPick } from "@/lib/serialize-polla";
 import { getPollaSession, getUserSession } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
 
 export default async function PollaPage() {
   const user = await getUserSession();
@@ -23,31 +25,51 @@ export default async function PollaPage() {
   const polla = await getPollaSession();
   if (!polla) redirect("/polla/grupos");
 
-  await ensureDbSchema();
+  let loaded;
+  try {
+    loaded = await loadPollaMember(polla.memberId, user.userId);
+  } catch (err) {
+    console.error("[polla] Error cargando datos:", err);
+    return (
+      <div className="card mx-auto max-w-md space-y-4 p-6 text-center">
+        <p className="font-display text-2xl text-cream">No pudimos cargar la polla</p>
+        <p className="text-sm text-muted">
+          Error temporal de base de datos. Espera unos segundos e intenta de nuevo.
+        </p>
+        <Link href="/polla" className="btn-primary inline-block">
+          Reintentar
+        </Link>
+      </div>
+    );
+  }
 
-  const member = await prisma.member.findFirst({
-    where: { id: polla.memberId, userId: user.userId },
-    include: {
-      matchPredictions: true,
-      knockoutPredictions: true,
-      tournamentPick: true,
-    },
-  });
+  if (!loaded) redirect("/polla/grupos");
 
-  if (!member) redirect("/polla/grupos");
+  const { member } = loaded;
 
   const knockout: Record<number, string> = {};
   for (const k of member.knockoutPredictions) {
     knockout[k.matchId] = k.winnerLabel;
   }
 
-  const allResults = await prisma.matchResult.findMany();
   const results: Record<number, { homeScore: number | null; awayScore: number | null }> = {};
-  for (const r of allResults) {
-    results[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
+  try {
+    const allResults = await prisma.matchResult.findMany();
+    for (const r of allResults) {
+      results[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
+    }
+  } catch (err) {
+    console.error("[polla] Error cargando resultados:", err);
   }
 
-  const leaderboard = await getLeaderboard(polla.groupId);
+  let myRank = 0;
+  try {
+    const leaderboard = await getLeaderboard(polla.groupId);
+    myRank = leaderboard.findIndex((r) => r.id === member.id) + 1;
+  } catch (err) {
+    console.error("[polla] Error cargando ranking:", err);
+  }
+
   const progress = getPollaProgress({
     matchPredictions: member.matchPredictions.length,
     knockoutPredictions: member.knockoutPredictions.length,
@@ -57,8 +79,6 @@ export default async function PollaPage() {
         member.tournamentPick?.surprise,
     ),
   });
-
-  const myRank = leaderboard.findIndex((r) => r.id === member.id) + 1;
 
   return (
     <div className="space-y-8">
@@ -86,16 +106,10 @@ export default async function PollaPage() {
 
       <PollaDashboard
         memberId={member.id}
-        predictions={member.matchPredictions.map((p) => ({
-          matchId: p.matchId,
-          homeScore: p.homeScore,
-          awayScore: p.awayScore,
-          homeScorers: parseScorersJson(p.homeScorers),
-          awayScorers: parseScorersJson(p.awayScorers),
-        }))}
+        predictions={serializePredictions(member.matchPredictions)}
         knockout={knockout}
         results={results}
-        tournament={member.tournamentPick ?? {}}
+        tournament={serializeTournamentPick(member.tournamentPick)}
         progress={progress}
       />
     </div>

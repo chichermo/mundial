@@ -9,15 +9,19 @@ export type TournamentAnswers = {
 };
 
 export async function getTournamentAnswers(): Promise<TournamentAnswers> {
-  const row = await prisma.globalAnswers.findUnique({ where: { id: "global" } });
-  if (row) {
-    return {
-      champion: row.champion,
-      surprise: row.surprise,
-      revelationTeam: row.revelationTeam,
-      topScorer: row.topScorer,
-      revelationPlayer: row.revelationPlayer,
-    };
+  try {
+    const row = await prisma.globalAnswers.findUnique({ where: { id: "global" } });
+    if (row) {
+      return {
+        champion: row.champion,
+        surprise: row.surprise,
+        revelationTeam: row.revelationTeam,
+        topScorer: row.topScorer,
+        revelationPlayer: row.revelationPlayer,
+      };
+    }
+  } catch (err) {
+    console.error("[global-answers]", err);
   }
   return {
     champion: process.env.POLLA_CHAMPION ?? null,

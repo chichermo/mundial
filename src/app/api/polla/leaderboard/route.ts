@@ -8,6 +8,11 @@ export async function GET() {
     return NextResponse.json({ error: "Inicia sesión y elige un grupo" }, { status: 401 });
   }
 
-  const data = await computeLiveStandings(auth.polla.groupId);
-  return NextResponse.json(data);
+  try {
+    const data = await computeLiveStandings(auth.polla.groupId);
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("[leaderboard]", err);
+    return NextResponse.json({ error: "No se pudo cargar el ranking" }, { status: 503 });
+  }
 }

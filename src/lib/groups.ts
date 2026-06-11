@@ -1,4 +1,5 @@
 import { ensureDbSchema } from "@/lib/ensure-db-schema";
+import { isMissingColumnError } from "@/lib/db-errors";
 import { getFeaturedMatch } from "@/lib/app-config";
 import { prisma } from "@/lib/prisma";
 import { getTournamentAnswers } from "@/lib/global-answers";
@@ -53,17 +54,41 @@ function isGroupResultComplete(
 }
 
 export async function computeLiveStandings(groupId: string): Promise<LiveStandings> {
-  await ensureDbSchema();
+  const hasScorerColumns = await ensureDbSchema();
 
-  const members = await prisma.member.findMany({
-    where: { groupId },
-    include: {
-      matchPredictions: true,
-      knockoutPredictions: true,
-      tournamentPick: true,
-    },
-    orderBy: { createdAt: "asc" },
-  });
+  const predictionInclude = hasScorerColumns
+    ? { matchPredictions: true as const }
+    : {
+        matchPredictions: {
+          select: { matchId: true, homeScore: true, awayScore: true },
+        },
+      };
+
+  let members;
+  try {
+    members = await prisma.member.findMany({
+      where: { groupId },
+      include: {
+        ...predictionInclude,
+        knockoutPredictions: true,
+        tournamentPick: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  } catch (err) {
+    if (!isMissingColumnError(err)) throw err;
+    members = await prisma.member.findMany({
+      where: { groupId },
+      include: {
+        matchPredictions: {
+          select: { matchId: true, homeScore: true, awayScore: true },
+        },
+        knockoutPredictions: true,
+        tournamentPick: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  }
 
   const results = await prisma.matchResult.findMany();
   const resultMap = new Map(results.map((r) => [r.matchId, r]));

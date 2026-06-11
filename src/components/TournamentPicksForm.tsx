@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { teams } from "@/lib/matches-data";
 import { SCORING_RULES } from "@/lib/scoring";
-import { isTournamentLocked, tournamentLockMessage } from "@/lib/tournament-lock";
 
 type Initial = {
   champion?: string | null;
@@ -18,7 +17,6 @@ type Props = {
 };
 
 export function TournamentPicksForm({ initial }: Props) {
-  const locked = isTournamentLocked();
   const [form, setForm] = useState({
     champion: initial.champion ?? "",
     surprise: initial.surprise ?? "",
@@ -30,7 +28,6 @@ export function TournamentPicksForm({ initial }: Props) {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (locked) return;
     setStatus("Guardando…");
     const res = await fetch("/api/polla/tournament", {
       method: "POST",
@@ -54,11 +51,8 @@ export function TournamentPicksForm({ initial }: Props) {
       <h3 className="font-display text-xl text-gold">Pronósticos especiales</h3>
       <p className="text-xs text-muted">
         Suman puntos al final cuando el admin publique las respuestas correctas en{" "}
-        <span className="text-lime">/admin</span>. Cierran al primer pitido del Mundial.
+        <span className="text-lime">/admin</span>.
       </p>
-      {locked && (
-        <p className="rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold">{tournamentLockMessage()}</p>
-      )}
       {fields.map((f) => (
         <label key={f.key} className="block">
           <span className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
@@ -70,7 +64,6 @@ export function TournamentPicksForm({ initial }: Props) {
           {f.type === "team" ? (
             <select
               value={form[f.key]}
-              disabled={locked}
               onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
               className="w-full rounded-lg border border-pitch-mid bg-pitch px-3 py-2 text-sm text-cream disabled:opacity-60"
             >
@@ -84,7 +77,6 @@ export function TournamentPicksForm({ initial }: Props) {
           ) : (
             <input
               value={form[f.key]}
-              disabled={locked}
               onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
               className="w-full rounded-lg border border-pitch-mid bg-pitch px-3 py-2 text-sm text-cream disabled:opacity-60"
               placeholder="Nombre del jugador"
@@ -93,8 +85,8 @@ export function TournamentPicksForm({ initial }: Props) {
         </label>
       ))}
       <div className="flex items-center gap-4">
-        <button type="submit" disabled={locked} className="btn-primary text-sm disabled:opacity-50">
-          {locked ? "Cerrado" : "Guardar especiales"}
+        <button type="submit" className="btn-primary text-sm">
+          Guardar especiales
         </button>
         {status && <span className="text-xs text-muted">{status}</span>}
       </div>

@@ -32,12 +32,13 @@ export async function GET() {
   }
 
   try {
-    await ensureDbSchema();
+    const scorerColumns = await ensureDbSchema();
     await prisma.user.count();
     return NextResponse.json({
       ok: true,
       db: true,
-      build: "2026-06-08b",
+      build: "2026-06-11b",
+      scorerColumns,
       env: { libsql: url.startsWith("libsql:"), hasToken },
     });
   } catch (err) {
