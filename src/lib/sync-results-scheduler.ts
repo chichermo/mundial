@@ -1,8 +1,9 @@
 import { syncResultsFromApiFootball } from "@/lib/api-football-sync";
+import { syncResultsFromEspn } from "@/lib/espn-sync";
 import { syncResultsFromOpenFootball } from "@/lib/openfootball-sync";
 import { prisma } from "@/lib/prisma";
 
-const SYNC_ACTIONS = ["openfootball_sync", "api_sync"] as const;
+const SYNC_ACTIONS = ["openfootball_sync", "espn_sync", "api_sync"] as const;
 const STALE_MS = 10 * 60 * 1000;
 
 let inflight: Promise<void> | null = null;
@@ -19,6 +20,7 @@ async function isStale(): Promise<boolean> {
 
 async function runSync(): Promise<void> {
   await syncResultsFromOpenFootball();
+  await syncResultsFromEspn();
   const apiKey = process.env.API_FOOTBALL_KEY;
   if (apiKey) {
     await syncResultsFromApiFootball(apiKey);

@@ -49,43 +49,53 @@ function kickoffProximity(fixtureIso: string, match: Match): number {
   return Math.abs(fixtureMs - kickMs);
 }
 
-/** Empareja fixture API con matchId local (mapa JSON + heurística en fase grupos). */
-export function resolveMatchId(fixture: ApiFixtureItem): number | undefined {
-  const fromMap = getMatchIdForFixture(fixture.fixture.id);
-  if (fromMap) return fromMap;
-
-  const apiHome = fixture.teams.home.name;
-  const apiAway = fixture.teams.away.name;
-
+/** Empareja equipos + fecha con matchId local (heurística fase grupos / eliminatoria). */
+export function resolveMatchIdByTeams(
+  eventDateIso: string,
+  homeName: string,
+  awayName: string,
+): number | undefined {
   const groupCandidates = matches.filter(
     (m) =>
       m.phase === "group" &&
-      teamsMatch(apiHome, apiAway, m.home, m.away) &&
-      sameCalendarDay(fixture.fixture.date, m.date),
+      teamsMatch(homeName, awayName, m.home, m.away) &&
+      sameCalendarDay(eventDateIso, m.date),
   );
 
   if (groupCandidates.length === 1) return groupCandidates[0].id;
   if (groupCandidates.length > 1) {
     groupCandidates.sort(
       (a, b) =>
-        kickoffProximity(fixture.fixture.date, a) - kickoffProximity(fixture.fixture.date, b),
+        kickoffProximity(eventDateIso, a) - kickoffProximity(eventDateIso, b),
     );
     return groupCandidates[0].id;
   }
 
   const knockoutCandidates = matches.filter(
-    (m) => m.phase !== "group" && sameCalendarDay(fixture.fixture.date, m.date),
+    (m) => m.phase !== "group" && sameCalendarDay(eventDateIso, m.date),
   );
   if (knockoutCandidates.length === 1) return knockoutCandidates[0].id;
   if (knockoutCandidates.length > 1) {
     knockoutCandidates.sort(
       (a, b) =>
-        kickoffProximity(fixture.fixture.date, a) - kickoffProximity(fixture.fixture.date, b),
+        kickoffProximity(eventDateIso, a) - kickoffProximity(eventDateIso, b),
     );
     return knockoutCandidates[0].id;
   }
 
   return undefined;
+}
+
+/** Empareja fixture API con matchId local (mapa JSON + heurística en fase grupos). */
+export function resolveMatchId(fixture: ApiFixtureItem): number | undefined {
+  const fromMap = getMatchIdForFixture(fixture.fixture.id);
+  if (fromMap) return fromMap;
+
+  return resolveMatchIdByTeams(
+    fixture.fixture.date,
+    fixture.teams.home.name,
+    fixture.teams.away.name,
+  );
 }
 
 export function buildFixtureMapEntries(fixtures: ApiFixtureItem[]): FixtureMapEntry[] {
