@@ -47,7 +47,7 @@ export default function JugadorPage() {
           Puesto #{data.rank} · {data.groupPts} pts grupos · {data.total} total
           {data.qualified && <span className="ml-2 text-lime">Clasificado</span>}
           {data.provisionalQualified && !data.qualified && (
-            <span className="ml-2 text-gold">Provisional top 4</span>
+            <span className="ml-2 text-gold">En zona (top 4 provisional)</span>
           )}
         </p>
       </header>

@@ -35,7 +35,7 @@ export function Leaderboard({ rows, highlightId }: Props) {
                     <span className="ml-2 text-[10px] text-lime">Clasificado</span>
                   )}
                   {row.provisionalQualified && !row.qualified && (
-                    <span className="ml-2 text-[10px] text-gold">Provisional</span>
+                    <span className="ml-2 text-[10px] text-gold">En zona</span>
                   )}
                 </div>
               </div>
@@ -86,7 +86,7 @@ export function Leaderboard({ rows, highlightId }: Props) {
                   {row.qualified ? (
                     <span className="text-lime">Clasificado</span>
                   ) : row.provisionalQualified ? (
-                    <span className="text-gold">Provisional</span>
+                    <span className="text-gold">En zona</span>
                   ) : (
                     <span className="text-muted">—</span>
                   )}

@@ -102,7 +102,7 @@ export default async function PollaPage() {
       <QualifiersBanner />
       <PollaProgressCard progress={progress} />
 
-      <LiveStandingsTable highlightId={member.id} compact />
+      <LiveStandingsTable highlightId={member.id} />
 
       <PollaDashboard
         memberId={member.id}

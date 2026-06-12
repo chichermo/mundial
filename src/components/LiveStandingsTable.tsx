@@ -76,6 +76,12 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
             eliminatoria
             {data.groupStageComplete ? " · Fase de grupos cerrada" : " · Fase de grupos en curso"}
           </p>
+          {!data.groupStageComplete && (
+            <p className="mt-1 text-[11px] text-muted">
+              <span className="text-gold">En zona</span> = por ahora entre los {data.qualifiersCount}{" "}
+              primeros; se confirma al cerrar la fase de grupos.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <ExportRankingButton targetId="live-standings-export" />
@@ -138,8 +144,11 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
                       Clasificado
                     </span>
                   ) : row.provisionalQualified ? (
-                    <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-medium text-gold">
-                      Provisional
+                    <span
+                      className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-medium text-gold"
+                      title="Por ahora entre los 4 primeros; puede cambiar hasta terminar la fase de grupos"
+                    >
+                      En zona
                     </span>
                   ) : data.groupStageComplete ? (
                     <span className="text-[10px] text-muted">Fuera</span>
