@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
 import { KnockoutPicks } from "./KnockoutPicks";
 import { LiveStandingsTable } from "./LiveStandingsTable";
@@ -40,12 +40,13 @@ export function PollaDashboard({
   memberId,
   predictions,
   knockout,
-  results,
+  results: initialResults,
   tournament,
   progress,
 }: Props) {
   const [tab, setTab] = useState<Tab>("partidos");
   const [groupFilter, setGroupFilter] = useState<GroupFilter>("A");
+  const [results, setResults] = useState<ResultMap>(initialResults);
   const predMap = useMemo(
     () => new Map(predictions.map((p) => [p.matchId, p])),
     [predictions],
@@ -75,6 +76,29 @@ export function PollaDashboard({
     },
     [],
   );
+
+  const refreshResults = useCallback(async () => {
+    try {
+      const res = await fetch("/api/matches/results", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        results: { matchId: number; homeScore: number | null; awayScore: number | null }[];
+      };
+      const next: ResultMap = {};
+      for (const r of data.results) {
+        next[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
+      }
+      setResults(next);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshResults();
+    const id = setInterval(refreshResults, 60_000);
+    return () => clearInterval(id);
+  }, [refreshResults]);
 
   const groupMatches = useMemo(() => {
     const all = matches.filter((m) => m.phase === "group");

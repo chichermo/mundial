@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { computeLiveStandings } from "@/lib/groups";
 import { requirePollaMember } from "@/lib/require-auth";
+import { syncResultsIfStale } from "@/lib/sync-results-scheduler";
 
 export async function GET() {
   const auth = await requirePollaMember();
@@ -9,6 +10,7 @@ export async function GET() {
   }
 
   try {
+    await syncResultsIfStale();
     const data = await computeLiveStandings(auth.polla.groupId);
     return NextResponse.json(data);
   } catch (err) {

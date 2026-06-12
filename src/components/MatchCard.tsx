@@ -5,6 +5,7 @@ import type { Match } from "@/lib/matches-data";
 import { getPhaseLabel } from "@/lib/matches-data";
 import { isPredictionLocked, lockReason } from "@/lib/match-lock";
 import { resizeScorerSlots } from "@/lib/scorers";
+import { getMatchPoints } from "@/lib/scoring";
 import { useCountdown } from "@/hooks/useCountdown";
 import { BroadcastPanel } from "./BroadcastPanel";
 import { MatchComments } from "./MatchComments";
@@ -125,6 +126,13 @@ export function MatchCard({
     prediction &&
     ((prediction.homeScorers?.length ?? 0) > 0 || (prediction.awayScorers?.length ?? 0) > 0);
 
+  const officialResult =
+    result?.homeScore != null && result?.awayScore != null
+      ? { homeScore: result.homeScore, awayScore: result.awayScore }
+      : null;
+  const earnedPts =
+    prediction && officialResult ? getMatchPoints(prediction, officialResult) : null;
+
   return (
     <article
       id={`partido-${match.id}`}
@@ -219,8 +227,18 @@ export function MatchCard({
 
           {prediction && (
             <p className="text-xs text-muted">
-              Guardado: {prediction.homeScore}-{prediction.awayScore}
+              Tu pronóstico: {prediction.homeScore}-{prediction.awayScore}
               {savedScorers && " · con goleadores"}
+            </p>
+          )}
+          {officialResult && (
+            <p className="text-xs text-cream">
+              Resultado oficial: {officialResult.homeScore}-{officialResult.awayScore}
+              {prediction && earnedPts != null && (
+                <span className={`ml-2 font-semibold ${earnedPts >= 5 ? "text-lime" : earnedPts >= 2 ? "text-gold" : "text-muted"}`}>
+                  {earnedPts > 0 ? `+${earnedPts} pts` : "0 pts"}
+                </span>
+              )}
             </p>
           )}
           {error && <p className="text-xs text-red-300">{error}</p>}

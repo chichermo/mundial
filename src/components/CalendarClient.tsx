@@ -57,12 +57,22 @@ export function CalendarClient() {
   const [displayMode, setDisplayMode] = useState<DisplayMode>("auto");
 
   useEffect(() => {
-    fetch("/api/matches/results")
+    fetch("/api/matches/results", { cache: "no-store" })
       .then((r) => r.json())
       .then((data: { results: { matchId: number; homeScore: number | null; awayScore: number | null }[] }) => {
         setResultsMap(new Map(data.results.map((r) => [r.matchId, r])));
       })
       .catch(() => {});
+
+    const id = setInterval(() => {
+      fetch("/api/matches/results", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((data: { results: { matchId: number; homeScore: number | null; awayScore: number | null }[] }) => {
+          setResultsMap(new Map(data.results.map((r) => [r.matchId, r])));
+        })
+        .catch(() => {});
+    }, 60_000);
+    return () => clearInterval(id);
   }, []);
 
   useEffect(() => {

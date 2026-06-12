@@ -34,11 +34,15 @@ export async function GET() {
   try {
     const scorerColumns = await ensureDbSchema();
     await prisma.user.count();
+    const resultsWithScore = await prisma.matchResult.count({
+      where: { homeScore: { not: null }, awayScore: { not: null } },
+    });
     return NextResponse.json({
       ok: true,
       db: true,
-      build: "2026-06-11b",
+      build: "2026-06-12a",
       scorerColumns,
+      resultsWithScore,
       env: { libsql: url.startsWith("libsql:"), hasToken },
     });
   } catch (err) {

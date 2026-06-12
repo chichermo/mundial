@@ -220,14 +220,17 @@ export function AdminPanel({ results, tournament }: Props) {
         </button>
         {syncStatus && <p className="text-xs text-muted">{syncStatus}</p>}
         <p className="text-[10px] text-muted">
-          El cron de Vercel usa openfootball primero (solo <code>CRON_SECRET</code>).
+          La app también sincroniza sola cada ~10 min al abrir la tabla o el calendario. El cron
+          diario de Vercel es respaldo (<code>CRON_SECRET</code>).
         </p>
       </div>
 
       <div className="card-pitch space-y-4 p-6">
         <h2 className="font-display text-xl text-gold">API-Football (opcional)</h2>
         <p className="text-sm text-muted">
-          Alternativa con clave. El plan free puede no incluir temporada 2026 aún.
+          Durante el torneo, si openfootball aún no tiene marcadores, configura{" "}
+          <code>API_FOOTBALL_KEY</code> en Vercel para resultados en vivo. El plan free puede no
+          incluir temporada 2026 aún.
           {apiConfigured === false && (
             <span className="mt-1 block text-gold">Clave no detectada en el servidor.</span>
           )}
