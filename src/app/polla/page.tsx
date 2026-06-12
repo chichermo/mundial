@@ -14,6 +14,7 @@ import { loadPollaMember } from "@/lib/polla-member";
 import { getPollaProgress } from "@/lib/polla-progress";
 import { prisma } from "@/lib/prisma";
 import { serializePredictions, serializeTournamentPick } from "@/lib/serialize-polla";
+import { rethrowIfNavigationError } from "@/lib/next-errors";
 import { getPollaSession, getUserSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -39,17 +40,18 @@ export default async function PollaPage() {
   const polla = await getPollaSession();
   if (!polla) redirect("/polla/grupos");
 
+  let loaded;
   try {
-    let loaded;
-    try {
-      loaded = await loadPollaMember(polla.memberId, user.userId);
-    } catch (err) {
-      console.error("[polla] Error cargando datos:", err);
-      return <PollaLoadError />;
-    }
+    loaded = await loadPollaMember(polla.memberId, user.userId);
+  } catch (err) {
+    rethrowIfNavigationError(err);
+    console.error("[polla] Error cargando datos:", err);
+    return <PollaLoadError />;
+  }
 
-    if (!loaded) redirect("/polla/grupos");
+  if (!loaded) redirect("/polla/grupos");
 
+  try {
     const { member } = loaded;
 
     const knockout: Record<number, string> = {};
@@ -120,6 +122,7 @@ export default async function PollaPage() {
     </div>
     );
   } catch (err) {
+    rethrowIfNavigationError(err);
     console.error("[polla] Error renderizando página:", err);
     return <PollaLoadError />;
   }

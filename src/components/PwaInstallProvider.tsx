@@ -110,10 +110,13 @@ export function PwaInstallProvider({ children }: { children: ReactNode }) {
   return <PwaInstallContext.Provider value={value}>{children}</PwaInstallContext.Provider>;
 }
 
+const FALLBACK: PwaInstallContextValue = {
+  canInstall: false,
+  platform: "other",
+  hasNativePrompt: false,
+  promptInstall: async () => "manual",
+};
+
 export function usePwaInstall(): PwaInstallContextValue {
-  const ctx = useContext(PwaInstallContext);
-  if (!ctx) {
-    throw new Error("usePwaInstall debe usarse dentro de PwaInstallProvider");
-  }
-  return ctx;
+  return useContext(PwaInstallContext) ?? FALLBACK;
 }
