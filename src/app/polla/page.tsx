@@ -18,6 +18,20 @@ import { getPollaSession, getUserSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
+function PollaLoadError() {
+  return (
+    <div className="card mx-auto max-w-md space-y-4 p-6 text-center">
+      <p className="font-display text-2xl text-cream">No pudimos cargar la polla</p>
+      <p className="text-sm text-muted">
+        Error temporal de base de datos. Espera unos segundos e intenta de nuevo.
+      </p>
+      <Link href="/polla" className="btn-primary inline-block">
+        Reintentar
+      </Link>
+    </div>
+  );
+}
+
 export default async function PollaPage() {
   const user = await getUserSession();
   if (!user) redirect("/cuenta/login?next=/polla");
@@ -25,62 +39,53 @@ export default async function PollaPage() {
   const polla = await getPollaSession();
   if (!polla) redirect("/polla/grupos");
 
-  let loaded;
   try {
-    loaded = await loadPollaMember(polla.memberId, user.userId);
-  } catch (err) {
-    console.error("[polla] Error cargando datos:", err);
-    return (
-      <div className="card mx-auto max-w-md space-y-4 p-6 text-center">
-        <p className="font-display text-2xl text-cream">No pudimos cargar la polla</p>
-        <p className="text-sm text-muted">
-          Error temporal de base de datos. Espera unos segundos e intenta de nuevo.
-        </p>
-        <Link href="/polla" className="btn-primary inline-block">
-          Reintentar
-        </Link>
-      </div>
-    );
-  }
-
-  if (!loaded) redirect("/polla/grupos");
-
-  const { member } = loaded;
-
-  const knockout: Record<number, string> = {};
-  for (const k of member.knockoutPredictions) {
-    knockout[k.matchId] = k.winnerLabel;
-  }
-
-  const results: Record<number, { homeScore: number | null; awayScore: number | null }> = {};
-  try {
-    const allResults = await prisma.matchResult.findMany();
-    for (const r of allResults) {
-      results[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
+    let loaded;
+    try {
+      loaded = await loadPollaMember(polla.memberId, user.userId);
+    } catch (err) {
+      console.error("[polla] Error cargando datos:", err);
+      return <PollaLoadError />;
     }
-  } catch (err) {
-    console.error("[polla] Error cargando resultados:", err);
-  }
 
-  let myRank = 0;
-  try {
-    const leaderboard = await getLeaderboard(polla.groupId);
-    myRank = leaderboard.findIndex((r) => r.id === member.id) + 1;
-  } catch (err) {
-    console.error("[polla] Error cargando ranking:", err);
-  }
+    if (!loaded) redirect("/polla/grupos");
 
-  const progress = getPollaProgress({
-    matchPredictions: member.matchPredictions.length,
-    knockoutPredictions: member.knockoutPredictions.length,
-    hasTournamentPick: Boolean(
-      member.tournamentPick?.champion ||
-        member.tournamentPick?.topScorer ||
-        member.tournamentPick?.surprise,
-    ),
-  });
+    const { member } = loaded;
 
-  return (
+    const knockout: Record<number, string> = {};
+    for (const k of member.knockoutPredictions) {
+      knockout[k.matchId] = k.winnerLabel;
+    }
+
+    const results: Record<number, { homeScore: number | null; awayScore: number | null }> = {};
+    try {
+      const allResults = await prisma.matchResult.findMany();
+      for (const r of allResults) {
+        results[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
+      }
+    } catch (err) {
+      console.error("[polla] Error cargando resultados:", err);
+    }
+
+    let myRank = 0;
+    try {
+      const leaderboard = await getLeaderboard(polla.groupId);
+      myRank = leaderboard.findIndex((r) => r.id === member.id) + 1;
+    } catch (err) {
+      console.error("[polla] Error cargando ranking:", err);
+    }
+
+    const progress = getPollaProgress({
+      matchPredictions: member.matchPredictions.length,
+      knockoutPredictions: member.knockoutPredictions.length,
+      hasTournamentPick: Boolean(
+        member.tournamentPick?.champion ||
+          member.tournamentPick?.topScorer ||
+          member.tournamentPick?.surprise,
+      ),
+    });
+
+    return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Polla activa"
@@ -113,5 +118,9 @@ export default async function PollaPage() {
         progress={progress}
       />
     </div>
-  );
+    );
+  } catch (err) {
+    console.error("[polla] Error renderizando página:", err);
+    return <PollaLoadError />;
+  }
 }

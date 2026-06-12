@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
+import {
+  formatMatchDayLabel,
+  groupMatchesByDateSorted,
+} from "@/lib/match-order";
 import { KnockoutPicks } from "./KnockoutPicks";
 import { LiveStandingsTable } from "./LiveStandingsTable";
 import { MatchCard, type PredictionData } from "./MatchCard";
@@ -35,6 +39,7 @@ type Props = {
 };
 
 type Tab = "partidos" | "eliminatoria" | "especiales" | "ranking";
+type MatchView = "calendar" | "group";
 
 export function PollaDashboard({
   memberId,
@@ -45,6 +50,7 @@ export function PollaDashboard({
   progress,
 }: Props) {
   const [tab, setTab] = useState<Tab>("partidos");
+  const [matchView, setMatchView] = useState<MatchView>("calendar");
   const [groupFilter, setGroupFilter] = useState<GroupFilter>("A");
   const [results, setResults] = useState<ResultMap>(initialResults);
   const predMap = useMemo(
@@ -100,11 +106,20 @@ export function PollaDashboard({
     return () => clearInterval(id);
   }, [refreshResults]);
 
+  const allGroupMatches = useMemo(
+    () => matches.filter((m) => m.phase === "group"),
+    [],
+  );
+
   const groupMatches = useMemo(() => {
-    const all = matches.filter((m) => m.phase === "group");
-    if (groupFilter === "all") return all;
-    return all.filter((m) => m.group === groupFilter);
-  }, [groupFilter]);
+    if (groupFilter === "all") return allGroupMatches;
+    return allGroupMatches.filter((m) => m.group === groupFilter);
+  }, [allGroupMatches, groupFilter]);
+
+  const calendarDays = useMemo(
+    () => groupMatchesByDateSorted(allGroupMatches),
+    [allGroupMatches],
+  );
 
   const tabs: { id: Tab; label: string; short: string; badge?: string }[] = [
     {
@@ -160,30 +175,80 @@ export function PollaDashboard({
             <strong className="text-gold">+2</strong> L/E/V. Opcional: goleadores por equipo.
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {GROUP_LETTERS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => setGroupFilter(g)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
-                  groupFilter === g ? "bg-lime text-ink" : "bg-pitch-mid/50 text-muted"
-                }`}
-              >
-                {g === "all" ? "Todos" : `Grupo ${g}`}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => setMatchView("calendar")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                matchView === "calendar" ? "bg-lime text-ink" : "bg-pitch-mid/50 text-muted"
+              }`}
+            >
+              Calendario
+            </button>
+            <button
+              type="button"
+              onClick={() => setMatchView("group")}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                matchView === "group" ? "bg-lime text-ink" : "bg-pitch-mid/50 text-muted"
+              }`}
+            >
+              Por grupo
+            </button>
           </div>
-          {groupMatches.map((m) => (
-            <MatchCard
-              key={m.id}
-              match={m}
-              showPrediction
-              showSocial
-              prediction={predMap.get(m.id)}
-              result={results[m.id] ?? null}
-              onPredict={onPredict}
-            />
-          ))}
+          {matchView === "group" && (
+            <div className="flex flex-wrap gap-1.5">
+              {GROUP_LETTERS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGroupFilter(g)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
+                    groupFilter === g ? "bg-lime text-ink" : "bg-pitch-mid/50 text-muted"
+                  }`}
+                >
+                  {g === "all" ? "Todos" : `Grupo ${g}`}
+                </button>
+              ))}
+            </div>
+          )}
+          {matchView === "calendar" ? (
+            <div className="space-y-6">
+              {calendarDays.map(({ date, matches: dayMatches }) => (
+                <section
+                  key={date}
+                  className="overflow-hidden rounded-xl border border-pitch-mid/50 bg-pitch-light/40"
+                >
+                  <h3 className="border-b border-pitch-mid/50 bg-pitch-mid/25 px-3 py-2.5 font-display text-sm capitalize leading-tight text-gold sm:px-4">
+                    {formatMatchDayLabel(date)}
+                  </h3>
+                  <div className="space-y-4 p-3 sm:p-4">
+                    {dayMatches.map((m) => (
+                      <MatchCard
+                        key={m.id}
+                        match={m}
+                        showPrediction
+                        showSocial
+                        prediction={predMap.get(m.id)}
+                        result={results[m.id] ?? null}
+                        onPredict={onPredict}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            groupMatches.map((m) => (
+              <MatchCard
+                key={m.id}
+                match={m}
+                showPrediction
+                showSocial
+                prediction={predMap.get(m.id)}
+                result={results[m.id] ?? null}
+                onPredict={onPredict}
+              />
+            ))
+          )}
         </div>
       )}
 
