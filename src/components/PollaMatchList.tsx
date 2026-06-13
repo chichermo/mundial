@@ -9,6 +9,7 @@ import {
   splitMatchesByOfficialResult,
 } from "@/lib/match-order";
 import { hasOfficialResult } from "@/lib/match-lock";
+import { getMatchStatus } from "@/lib/match-status";
 import { getKickoffUtc } from "@/lib/timezones";
 import { MatchCard, type PredictionData } from "@/components/MatchCard";
 import { PollaFinishedMatchRow, type ResultMap } from "@/components/PollaFinishedMatchRow";
@@ -27,16 +28,45 @@ type Props = {
   showSocial?: boolean;
 };
 
-function CurrentMatchBanner({ match }: { match: Match }) {
+function CurrentMatchBanner({
+  match,
+  result,
+}: {
+  match: Match;
+  result?: { homeScore: number | null; awayScore: number | null } | null;
+}) {
+  const status = getMatchStatus(match, result);
   const kickoff = getKickoffUtc(match.date, match.kickoffEst);
-  const started = Date.now() >= kickoff.getTime();
-  const label = started ? "Partido en curso" : "Próximo partido";
+  const label =
+    status === "live"
+      ? "Partido en curso"
+      : status === "awaiting_result"
+        ? "Esperando marcador oficial"
+        : "Próximo partido";
 
   return (
     <div className="card-pitch border-lime/30 bg-gradient-to-r from-lime/10 to-transparent p-4">
       <p className="text-xs uppercase tracking-wider text-lime">{label}</p>
       <p className="mt-1 font-display text-xl text-cream sm:text-2xl">
         #{match.id} {match.home} vs {match.away}
+      </p>
+      <p className="mt-1 text-xs text-muted">
+        Pitido:{" "}
+        {kickoff.toLocaleString("es-CL", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "America/Santiago",
+        })}{" "}
+        (Chile) ·{" "}
+        {kickoff.toLocaleString("es-CL", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "America/New_York",
+        })}{" "}
+        ET
       </p>
       <a href={`#partido-${match.id}`} className="btn-ghost mt-3 inline-block text-sm">
         Ir al partido ↓
@@ -130,7 +160,7 @@ export function PollaMatchList({ matches, results, predMap, onPredict, showSocia
         {active.length} por jugar
       </p>
 
-      {currentMatch && <CurrentMatchBanner match={currentMatch} />}
+      {currentMatch && <CurrentMatchBanner match={currentMatch} result={results[currentMatch.id]} />}
 
       <MatchDaySections
         days={activeDays}
