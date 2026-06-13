@@ -35,6 +35,25 @@ type Props = {
   result?: { homeScore: number | null; awayScore: number | null } | null;
 };
 
+const MAX_GOALS = 15;
+
+function formatScoreInput(score: number | undefined): string {
+  return score == null ? "" : String(score);
+}
+
+function sanitizeScoreInput(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 2);
+  if (digits === "") return "";
+  return String(Math.min(MAX_GOALS, Number.parseInt(digits, 10)));
+}
+
+function parseScoreInput(raw: string): number | null {
+  if (raw.trim() === "") return null;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 0 || n > MAX_GOALS) return null;
+  return n;
+}
+
 function ScorerInputs({
   teamLabel,
   count,
@@ -86,8 +105,10 @@ export function MatchCard({
   result,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const [home, setHome] = useState(prediction?.homeScore ?? 0);
-  const [away, setAway] = useState(prediction?.awayScore ?? 0);
+  const [homeInput, setHomeInput] = useState(() => formatScoreInput(prediction?.homeScore));
+  const [awayInput, setAwayInput] = useState(() => formatScoreInput(prediction?.awayScore));
+  const homeGoals = parseScoreInput(homeInput) ?? 0;
+  const awayGoals = parseScoreInput(awayInput) ?? 0;
   const [homeScorers, setHomeScorers] = useState<string[]>(
     resizeScorerSlots(prediction?.homeScorers ?? [], prediction?.homeScore ?? 0),
   );
@@ -102,15 +123,26 @@ export function MatchCard({
   const countdown = useCountdown(match.date, match.kickoffEst, !result?.homeScore);
 
   useEffect(() => {
-    setHomeScorers((prev) => resizeScorerSlots(prev, home));
-  }, [home]);
+    setHomeInput(formatScoreInput(prediction?.homeScore));
+    setAwayInput(formatScoreInput(prediction?.awayScore));
+  }, [prediction?.homeScore, prediction?.awayScore]);
 
   useEffect(() => {
-    setAwayScorers((prev) => resizeScorerSlots(prev, away));
-  }, [away]);
+    setHomeScorers((prev) => resizeScorerSlots(prev, homeGoals));
+  }, [homeGoals]);
+
+  useEffect(() => {
+    setAwayScorers((prev) => resizeScorerSlots(prev, awayGoals));
+  }, [awayGoals]);
 
   async function save() {
     if (!onPredict || locked) return;
+    const home = parseScoreInput(homeInput);
+    const away = parseScoreInput(awayInput);
+    if (home == null || away == null) {
+      setError("Ingresa el marcador completo (local y visitante).");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -177,25 +209,27 @@ export function MatchCard({
             <span className="w-full text-sm text-muted sm:w-auto">Marcador</span>
             <div className="flex items-center gap-2">
               <input
-                type="number"
-                min={0}
-                max={15}
+                type="text"
                 inputMode="numeric"
-                value={home}
+                autoComplete="off"
+                maxLength={2}
+                value={homeInput}
                 disabled={locked}
-                onChange={(e) => setHome(Math.max(0, Math.min(15, Number(e.target.value) || 0)))}
+                placeholder="0"
+                onChange={(e) => setHomeInput(sanitizeScoreInput(e.target.value))}
                 className="h-11 w-14 rounded-lg border border-pitch-mid bg-pitch px-2 text-center text-lg text-cream focus:ring-2 focus:ring-lime disabled:opacity-50"
                 aria-label={`Goles ${match.home}`}
               />
               <span className="text-muted">-</span>
               <input
-                type="number"
-                min={0}
-                max={15}
+                type="text"
                 inputMode="numeric"
-                value={away}
+                autoComplete="off"
+                maxLength={2}
+                value={awayInput}
                 disabled={locked}
-                onChange={(e) => setAway(Math.max(0, Math.min(15, Number(e.target.value) || 0)))}
+                placeholder="0"
+                onChange={(e) => setAwayInput(sanitizeScoreInput(e.target.value))}
                 className="h-11 w-14 rounded-lg border border-pitch-mid bg-pitch px-2 text-center text-lg text-cream focus:ring-2 focus:ring-lime disabled:opacity-50"
                 aria-label={`Goles ${match.away}`}
               />
@@ -203,7 +237,7 @@ export function MatchCard({
             <button
               type="button"
               onClick={save}
-              disabled={locked || saving}
+              disabled={locked || saving || homeInput === "" || awayInput === ""}
               className="btn-primary w-full text-sm sm:ml-auto sm:w-auto sm:!min-h-10"
             >
               {locked ? "Cerrado" : saving ? "Guardando…" : "Guardar"}
@@ -212,14 +246,14 @@ export function MatchCard({
 
           <ScorerInputs
             teamLabel={match.home}
-            count={home}
+            count={homeGoals}
             values={homeScorers}
             disabled={locked}
             onChange={setHomeScorers}
           />
           <ScorerInputs
             teamLabel={match.away}
-            count={away}
+            count={awayGoals}
             values={awayScorers}
             disabled={locked}
             onChange={setAwayScorers}
