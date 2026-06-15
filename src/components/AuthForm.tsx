@@ -105,6 +105,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
         {loading ? "Espera…" : mode === "login" ? "Entrar" : "Crear mi cuenta"}
       </button>
 
+      {mode === "login" && (
+        <p className="text-center text-sm">
+          <Link href="/cuenta/recuperar" className="text-lime underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </p>
+      )}
+
       <p className="text-center text-sm text-muted">
         {mode === "login" ? (
           <>

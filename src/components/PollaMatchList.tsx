@@ -5,6 +5,7 @@ import type { Match } from "@/lib/matches-data";
 import {
   findCurrentMatch,
   formatMatchDayLabel,
+  getTodayCalendarDay,
   groupMatchesByDateSorted,
   splitMatchesByOfficialResult,
 } from "@/lib/match-order";
@@ -142,7 +143,17 @@ export function PollaMatchList({ matches, results, predMap, onPredict, showSocia
     [matches, results],
   );
 
-  const activeDays = useMemo(() => groupMatchesByDateSorted(active), [active]);
+  const activeDays = useMemo(() => {
+    const days = groupMatchesByDateSorted(active);
+    const today = getTodayCalendarDay();
+    return days.filter(({ date }) => date >= today);
+  }, [active]);
+
+  const pastActiveDays = useMemo(() => {
+    const days = groupMatchesByDateSorted(active);
+    const today = getTodayCalendarDay();
+    return days.filter(({ date }) => date < today);
+  }, [active]);
 
   const historyWithResults = useMemo(
     () =>
@@ -170,6 +181,30 @@ export function PollaMatchList({ matches, results, predMap, onPredict, showSocia
         showSocial={showSocial}
         highlightId={currentMatch?.id}
       />
+
+      {pastActiveDays.length > 0 && (
+        <details className="group overflow-hidden rounded-xl border border-pitch-mid/50 bg-pitch-light/30">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-cream marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center justify-between gap-2">
+              <span>
+                Jornadas anteriores ·{" "}
+                {pastActiveDays.reduce((n, d) => n + d.matches.length, 0)} partido(s) cerrado(s)
+              </span>
+              <span className="text-xs text-muted group-open:hidden">Ver</span>
+              <span className="hidden text-xs text-muted group-open:inline">Ocultar</span>
+            </span>
+          </summary>
+          <div className="border-t border-pitch-mid/40 p-3 sm:p-4">
+            <MatchDaySections
+              days={pastActiveDays}
+              results={results}
+              predMap={predMap}
+              onPredict={onPredict}
+              showSocial={showSocial}
+            />
+          </div>
+        </details>
+      )}
 
       {historyWithResults.length > 0 && (
         <details className="group overflow-hidden rounded-xl border border-pitch-mid/50 bg-pitch-light/30">

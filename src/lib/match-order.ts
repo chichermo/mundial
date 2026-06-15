@@ -1,11 +1,26 @@
 import type { Match } from "@/lib/matches-data";
 import { hasOfficialResult, type MatchResultLike } from "@/lib/match-lock";
 import { getKickoffUtc } from "@/lib/timezones";
+import { formatInTimeZone } from "date-fns-tz";
+import { es } from "date-fns/locale";
+
+/** Zona de referencia para agrupar jornadas (audiencia principal de la app). */
+export const MATCH_CALENDAR_TZ = "America/Santiago";
 
 export type ResultLookup = Record<
   number,
   { homeScore: number | null; awayScore: number | null } | undefined
 >;
+
+export function getTodayCalendarDay(tz = MATCH_CALENDAR_TZ): string {
+  return formatInTimeZone(new Date(), tz, "yyyy-MM-dd");
+}
+
+/** Día calendario del pitido en la zona indicada (no la fecha FIFA en ET). */
+export function getMatchCalendarDay(match: Pick<Match, "date" | "kickoffEst">, tz = MATCH_CALENDAR_TZ): string {
+  const kickoff = getKickoffUtc(match.date, match.kickoffEst);
+  return formatInTimeZone(kickoff, tz, "yyyy-MM-dd");
+}
 
 export function getMatchResult(
   matchId: number,
@@ -40,12 +55,25 @@ export function splitMatchesByOfficialResult(
   return { active, history };
 }
 
-/** Primer partido aún sin resultado oficial (el más próximo o en curso). */
+/** Próximo partido relevante: en vivo, luego el más cercano por venir. */
 export function findCurrentMatch(
   matchList: Match[],
   results: ResultLookup,
 ): Match | undefined {
-  return splitMatchesByOfficialResult(matchList, results).active[0];
+  const { active } = splitMatchesByOfficialResult(matchList, results);
+  if (!active.length) return undefined;
+
+  const now = Date.now();
+  const live = active.find((m) => {
+    const kick = getKickoffUtc(m.date, m.kickoffEst).getTime();
+    return now >= kick && now < kick + 2 * 60 * 60 * 1000;
+  });
+  if (live) return live;
+
+  const upcoming = active.filter((m) => getKickoffUtc(m.date, m.kickoffEst).getTime() > now);
+  if (upcoming.length) return upcoming[0];
+
+  return undefined;
 }
 
 export function compareMatchesByKickoff(a: Match, b: Match): number {
@@ -59,9 +87,10 @@ export function groupMatchesByDateSorted(matchList: Match[]): { date: string; ma
   const groups: { date: string; matches: Match[] }[] = [];
 
   for (const match of sorted) {
+    const day = getMatchCalendarDay(match);
     const last = groups[groups.length - 1];
-    if (!last || last.date !== match.date) {
-      groups.push({ date: match.date, matches: [match] });
+    if (!last || last.date !== day) {
+      groups.push({ date: day, matches: [match] });
     } else {
       last.matches.push(match);
     }
@@ -70,10 +99,7 @@ export function groupMatchesByDateSorted(matchList: Match[]): { date: string; ma
   return groups;
 }
 
-export function formatMatchDayLabel(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("es-CL", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-  });
+export function formatMatchDayLabel(date: string, tz = MATCH_CALENDAR_TZ): string {
+  const noon = new Date(`${date}T12:00:00Z`);
+  return formatInTimeZone(noon, tz, "EEEE d MMM", { locale: es });
 }

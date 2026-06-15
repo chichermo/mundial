@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { matches, type Match } from "@/lib/matches-data";
+import { groupMatchesByDateSorted } from "@/lib/match-order";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useFavoriteTeams } from "@/hooks/useFavoriteTeams";
 import { groupMatchesByDateAndView, MatchDayBlock } from "./calendar/MatchDayBlock";
@@ -90,13 +91,8 @@ export function CalendarClient() {
   );
 
   const days = useMemo(() => {
-    const map = new Map<string, Match[]>();
-    for (const m of filtered) {
-      const arr = map.get(m.date) ?? [];
-      arr.push(m);
-      map.set(m.date, arr);
-    }
-    const entries = [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const grouped = groupMatchesByDateSorted(filtered);
+    const entries = grouped.map((g) => [g.date, g.matches] as [string, Match[]]);
     return groupMatchesByDateAndView(entries, displayMode);
   }, [filtered, displayMode]);
 

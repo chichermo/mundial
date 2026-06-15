@@ -9,7 +9,11 @@ describe("getMatchStatus", () => {
     const m = getMatch(6)!;
     const kick = getKickoffUtc(m.date, m.kickoffEst);
     assert.equal(kick.toISOString(), "2026-06-14T04:00:00.000Z");
+
+    const originalNow = Date.now;
+    Date.now = () => kick.getTime() - 60 * 60 * 1000;
     assert.equal(getMatchStatus(m, null), "pending");
+    Date.now = originalNow;
   });
 
   it("marks live only within two hours of kickoff", () => {

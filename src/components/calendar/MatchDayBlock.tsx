@@ -1,4 +1,5 @@
 import type { Match } from "@/lib/matches-data";
+import { formatMatchDayLabel } from "@/lib/match-order";
 import { MatchCard } from "@/components/MatchCard";
 import { MatchListRow } from "./MatchListRow";
 
@@ -14,11 +15,7 @@ type Props = {
 };
 
 export function MatchDayBlock({ date, matches, viewMode, resultsMap }: Props) {
-  const label = new Date(`${date}T12:00:00`).toLocaleDateString("es-CL", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-  });
+  const label = formatMatchDayLabel(date);
 
   if (viewMode === "compact") {
     return (
