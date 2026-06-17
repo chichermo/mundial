@@ -78,8 +78,8 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
           </p>
           {!data.groupStageComplete && (
             <p className="mt-1 text-[11px] text-muted">
-              <span className="text-gold">En zona</span> = por ahora entre los {data.qualifiersCount}{" "}
-              primeros; se confirma al cerrar la fase de grupos.
+              <span className="text-gold">En zona</span> = puntaje del top {data.qualifiersCount} o
+              más (empates incluidos); se confirma al cerrar la fase de grupos.
             </p>
           )}
         </div>

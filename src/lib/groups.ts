@@ -53,6 +53,20 @@ function isGroupResultComplete(
   return result?.homeScore != null && result?.awayScore != null;
 }
 
+/** Puntaje mínimo de fase de grupos para estar en zona (incluye empates en el corte). */
+export function getQualificationCutoffGroupPts(
+  groupPtsSortedDesc: number[],
+  qualifiersCount: number,
+): number {
+  if (groupPtsSortedDesc.length === 0) return 0;
+  const idx = Math.min(qualifiersCount, groupPtsSortedDesc.length) - 1;
+  return groupPtsSortedDesc[idx]!;
+}
+
+export function isInQualificationZone(groupPts: number, cutoffGroupPts: number): boolean {
+  return groupPts >= cutoffGroupPts;
+}
+
 export async function computeLiveStandings(groupId: string): Promise<LiveStandings> {
   const hasScorerColumns = await ensureDbSchema();
 
@@ -166,14 +180,16 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
   });
 
   const byGroupPts = [...rawRows].sort((a, b) => b.groupPts - a.groupPts);
-  const qualifiedIds = new Set(
-    byGroupPts.slice(0, POLL_CONFIG.qualifiersCount).map((r) => r.id),
+  const cutoffGroupPts = getQualificationCutoffGroupPts(
+    byGroupPts.map((r) => r.groupPts),
+    POLL_CONFIG.qualifiersCount,
   );
 
   const rows: StandingsRow[] = byGroupPts.map((row, index) => {
     const rank = index + 1;
-    const qualified = groupStageComplete && qualifiedIds.has(row.id);
-    const provisionalQualified = !groupStageComplete && rank <= POLL_CONFIG.qualifiersCount;
+    const inZone = isInQualificationZone(row.groupPts, cutoffGroupPts);
+    const qualified = groupStageComplete && inZone;
+    const provisionalQualified = !groupStageComplete && inZone;
     const knockoutCounted =
       !groupStageComplete ? 0 : qualified ? row.knockoutPts : 0;
 

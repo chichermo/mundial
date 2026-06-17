@@ -26,7 +26,7 @@ export function QualifiersBanner() {
       </p>
       {!data.groupStageComplete && (
         <p className="mt-1 text-xs text-muted">
-          Los 4 primeros van a la eliminatoria. Mientras no terminen los 72 partidos de grupos, esa
+          Los 4 primeros van a la eliminatoria (empates en puntos incluidos). Mientras no terminen los 72 partidos de grupos, esa
           zona se marca como <span className="text-gold">en zona</span> (puede cambiar).
         </p>
       )}
