@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { knockoutLabelsMatch } from "@/lib/knockout-labels";
 import { getMatch, matches } from "@/lib/matches-data";
 import { POLL_CONFIG } from "@/lib/poll-config";
-import { getMatchPoints, getTournamentPoints, SCORING_RULES } from "@/lib/scoring";
+import { getMatchPoints, getKnockoutPoints, getTournamentPoints } from "@/lib/scoring";
 
 const GROUP_MATCH_IDS = matches.filter((m) => m.phase === "group").map((m) => m.id);
 
@@ -161,8 +161,23 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
 
     for (const kp of member.knockoutPredictions) {
       const result = resultMap.get(kp.matchId);
-      if (result?.winnerLabel && knockoutLabelsMatch(kp.winnerLabel, result.winnerLabel)) {
-        knockoutPts += SCORING_RULES.knockoutWinner;
+      if (
+        result?.homeScore != null &&
+        result?.awayScore != null
+      ) {
+        knockoutPts += getKnockoutPoints(
+          {
+            homeScore: kp.homeScore,
+            awayScore: kp.awayScore,
+            winnerLabel: kp.winnerLabel,
+          },
+          {
+            homeScore: result.homeScore,
+            awayScore: result.awayScore,
+            winnerLabel: result.winnerLabel,
+          },
+          { winnerMatch: knockoutLabelsMatch },
+        );
       }
     }
 

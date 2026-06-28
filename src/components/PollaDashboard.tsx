@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
+import type { KnockoutPickData } from "@/lib/knockout-predict";
 import { isKnockoutPhase } from "@/lib/tournament-phase";
 import { KnockoutPicks } from "./KnockoutPicks";
 import { LiveStandingsTable } from "./LiveStandingsTable";
@@ -24,7 +25,7 @@ type Progress = {
 type Props = {
   memberId: string;
   predictions: Prediction[];
-  knockout: Record<number, string>;
+  knockout: Record<number, KnockoutPickData>;
   results: ResultMap;
   tournament: {
     champion?: string | null;

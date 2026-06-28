@@ -50,8 +50,23 @@ export default function ReglasPage() {
         <h2 className="font-display text-xl text-gold">3. Eliminatoria</h2>
         <p className="text-sm text-muted">
           Solo los {POLL_CONFIG.qualifiersCount} clasificados suman puntos en cruces de eliminatoria.
-          Aciertas al ganador del partido:{" "}
-          <strong className="text-lime">+{SCORING_RULES.knockoutWinner} pts</strong>.
+          Pronostica el <strong className="text-cream">marcador</strong> de cada partido:
+        </p>
+        <ul className="space-y-2 text-sm">
+          <li>
+            <strong className="text-lime">{SCORING_RULES.exactScore} pts</strong> — marcador exacto
+          </li>
+          <li>
+            <strong className="text-gold">{SCORING_RULES.correctResult} pts</strong> — aciertas L/E/V
+          </li>
+          <li>
+            <strong className="text-muted">0 pts</strong> — fallas el resultado
+          </li>
+        </ul>
+        <p className="text-xs text-muted">
+          Si pronosticas empate, indica además quién clasifica (tanda de penales). Pronósticos antiguos
+          solo con ganador siguen valiendo +{SCORING_RULES.knockoutWinner} pts si aciertas al campeón
+          del cruce.
         </p>
       </section>
 

@@ -33,6 +33,32 @@ export function getMatchPoints(
   return predDiff === resDiff ? SCORING_RULES.correctResult : 0;
 }
 
+export function getKnockoutPoints(
+  pred: {
+    homeScore: number | null;
+    awayScore: number | null;
+    winnerLabel: string;
+  },
+  result: { homeScore: number; awayScore: number; winnerLabel?: string | null } | null,
+  options?: { winnerMatch?: (picked: string, official: string) => boolean },
+): number {
+  if (!result) return 0;
+
+  if (pred.homeScore != null && pred.awayScore != null) {
+    return getMatchPoints(
+      { homeScore: pred.homeScore, awayScore: pred.awayScore },
+      { homeScore: result.homeScore, awayScore: result.awayScore },
+    );
+  }
+
+  if (result.winnerLabel && pred.winnerLabel) {
+    const matchWinner = options?.winnerMatch ?? ((a, b) => a === b);
+    return matchWinner(pred.winnerLabel, result.winnerLabel) ? SCORING_RULES.knockoutWinner : 0;
+  }
+
+  return 0;
+}
+
 export function getTournamentPoints(
   pick: TournamentPick | null,
   answers: {

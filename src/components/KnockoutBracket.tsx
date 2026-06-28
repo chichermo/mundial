@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Match } from "@/lib/matches-data";
 import {
   buildKnockoutBracket,
@@ -8,16 +8,23 @@ import {
   resolveFeederLabel,
   type BracketMatchResult,
 } from "@/lib/knockout-bracket";
+import type { KnockoutPickData } from "@/lib/knockout-predict";
 import { isPredictionLocked, lockReason } from "@/lib/match-lock";
 import { formatMatchDayLabel, getMatchCalendarDay } from "@/lib/match-order";
+import {
+  formatScoreInput,
+  parseScoreInput,
+  sanitizeScoreInput,
+} from "@/lib/score-input";
+import { getKnockoutPoints } from "@/lib/scoring";
 import { formatKickoffInZone } from "@/lib/timezones";
 
 type ResultMap = Record<number, BracketMatchResult | undefined>;
 
 type Props = {
-  picks: Record<number, string>;
+  picks: Record<number, KnockoutPickData>;
   results?: ResultMap;
-  onPick?: (matchId: number, winnerLabel: string) => void;
+  onPick?: (matchId: number, home: number, away: number, winnerLabel?: string) => Promise<void>;
   interactive?: boolean;
 };
 
@@ -32,10 +39,10 @@ function BracketMatchCard({
 }: {
   match: Match;
   result?: BracketMatchResult;
-  pick?: string;
+  pick?: KnockoutPickData;
   feedsFrom?: [number, number];
   results: ResultMap;
-  onPick?: (matchId: number, winnerLabel: string) => void;
+  onPick?: Props["onPick"];
   interactive?: boolean;
 }) {
   const locked = isPredictionLocked(match, result);
@@ -46,6 +53,66 @@ function BracketMatchCard({
     match.kickoffEst,
     "America/Santiago",
   );
+
+  const [homeInput, setHomeInput] = useState(() => formatScoreInput(pick?.homeScore));
+  const [awayInput, setAwayInput] = useState(() => formatScoreInput(pick?.awayScore));
+  const [tieWinner, setTieWinner] = useState(pick?.winnerLabel ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setHomeInput(formatScoreInput(pick?.homeScore));
+    setAwayInput(formatScoreInput(pick?.awayScore));
+    setTieWinner(pick?.winnerLabel ?? "");
+  }, [pick?.homeScore, pick?.awayScore, pick?.winnerLabel]);
+
+  const homeParsed = parseScoreInput(homeInput);
+  const awayParsed = parseScoreInput(awayInput);
+  const isTiePick = homeParsed != null && awayParsed != null && homeParsed === awayParsed;
+
+  const officialResult =
+    result?.homeScore != null && result?.awayScore != null
+      ? {
+          homeScore: result.homeScore,
+          awayScore: result.awayScore,
+          winnerLabel: result.winnerLabel,
+        }
+      : null;
+
+  const earnedPts =
+    pick?.homeScore != null && pick?.awayScore != null && officialResult
+      ? getKnockoutPoints(
+          {
+            homeScore: pick.homeScore,
+            awayScore: pick.awayScore,
+            winnerLabel: pick.winnerLabel ?? "",
+          },
+          officialResult,
+        )
+      : null;
+
+  async function save() {
+    if (!onPick || locked) return;
+    const home = parseScoreInput(homeInput);
+    const away = parseScoreInput(awayInput);
+    if (home == null || away == null) {
+      setError("Ingresa el marcador completo.");
+      return;
+    }
+    if (home === away && !tieWinner) {
+      setError("Si pronosticas empate, elige quién clasifica.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      await onPick(match.id, home, away, home === away ? tieWinner : undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo guardar");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div
@@ -87,20 +154,76 @@ function BracketMatchCard({
       </p>
 
       {interactive && onPick && (
-        <select
-          value={pick ?? ""}
-          disabled={locked}
-          onChange={(e) => onPick(match.id, e.target.value)}
-          className="mt-2 min-h-[40px] w-full rounded-lg border border-pitch-mid bg-pitch px-2 py-1.5 text-sm text-cream disabled:opacity-50"
-        >
-          <option value="">{locked ? "Cerrado" : "— Ganador —"}</option>
-          <option value={match.home}>{match.home}</option>
-          <option value={match.away}>{match.away}</option>
-        </select>
+        <div className="mt-3 space-y-2 border-t border-pitch-mid/40 pt-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted">Marcador</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={2}
+              value={homeInput}
+              disabled={locked}
+              placeholder="0"
+              onChange={(e) => setHomeInput(sanitizeScoreInput(e.target.value))}
+              className="h-10 w-12 rounded-lg border border-pitch-mid bg-pitch px-1 text-center text-cream disabled:opacity-50"
+              aria-label={`Goles ${match.home}`}
+            />
+            <span className="text-muted">-</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={2}
+              value={awayInput}
+              disabled={locked}
+              placeholder="0"
+              onChange={(e) => setAwayInput(sanitizeScoreInput(e.target.value))}
+              className="h-10 w-12 rounded-lg border border-pitch-mid bg-pitch px-1 text-center text-cream disabled:opacity-50"
+              aria-label={`Goles ${match.away}`}
+            />
+            <button
+              type="button"
+              onClick={save}
+              disabled={locked || saving || homeInput === "" || awayInput === ""}
+              className="btn-primary ml-auto min-h-9 px-3 text-xs"
+            >
+              {locked ? "Cerrado" : saving ? "…" : "Guardar"}
+            </button>
+          </div>
+          {isTiePick && !locked && (
+            <select
+              value={tieWinner}
+              onChange={(e) => setTieWinner(e.target.value)}
+              className="min-h-9 w-full rounded-lg border border-pitch-mid bg-pitch px-2 py-1 text-xs text-cream"
+            >
+              <option value="">— Quién clasifica —</option>
+              <option value={match.home}>{match.home}</option>
+              <option value={match.away}>{match.away}</option>
+            </select>
+          )}
+          {error && <p className="text-[10px] text-red-300">{error}</p>}
+        </div>
       )}
 
-      {!interactive && pick && !winner && (
-        <p className="mt-2 text-[10px] text-gold">Tu pick: {pick}</p>
+      {!interactive && pick?.homeScore != null && pick?.awayScore != null && (
+        <p className="mt-2 text-[10px] text-gold">
+          Tu marcador: {pick.homeScore}-{pick.awayScore}
+          {pick.homeScore === pick.awayScore && pick.winnerLabel
+            ? ` · clasifica ${pick.winnerLabel}`
+            : ""}
+        </p>
+      )}
+
+      {officialResult && (
+        <p className="mt-1 text-[10px] text-cream">
+          Oficial: {officialResult.homeScore}-{officialResult.awayScore}
+          {earnedPts != null && (
+            <span
+              className={`ml-1 font-semibold ${earnedPts >= 5 ? "text-lime" : earnedPts >= 2 ? "text-gold" : "text-muted"}`}
+            >
+              {earnedPts > 0 ? `+${earnedPts} pts` : "0 pts"}
+            </span>
+          )}
+        </p>
       )}
 
       {winner && <p className="mt-1 text-[10px] text-lime">Ganador: {winner}</p>}
@@ -132,8 +255,8 @@ export function KnockoutBracket({ picks, results = {}, onPick, interactive = fal
       <section>
         <h3 className="font-display text-lg text-gold">Dieciseisavos de final</h3>
         <p className="mt-1 text-xs text-muted">
-          Cruces confirmados tras la fase de grupos. Los mejores terceros se definen al cierre de la
-          jornada del 27 de junio.
+          Pronostica el marcador: +5 exacto, +2 L/E/V (igual que fase de grupos). Si empatas, indica
+          quién clasifica.
         </p>
         <div className="mt-4 space-y-6">
           {round32ByDay.map(([day, slots]) => (

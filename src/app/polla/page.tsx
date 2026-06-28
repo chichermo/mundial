@@ -10,6 +10,7 @@ import { PollaDashboard } from "@/components/PollaDashboard";
 import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getLeaderboard } from "@/lib/groups";
+import type { KnockoutPickData } from "@/lib/knockout-predict";
 import { loadPollaMember } from "@/lib/polla-member";
 import { getPollaProgress } from "@/lib/polla-progress";
 import { prisma } from "@/lib/prisma";
@@ -54,9 +55,13 @@ export default async function PollaPage() {
   try {
     const { member } = loaded;
 
-    const knockout: Record<number, string> = {};
+    const knockout: Record<number, KnockoutPickData> = {};
     for (const k of member.knockoutPredictions) {
-      knockout[k.matchId] = k.winnerLabel;
+      knockout[k.matchId] = {
+        winnerLabel: k.winnerLabel,
+        homeScore: k.homeScore,
+        awayScore: k.awayScore,
+      };
     }
 
     const results: Record<
@@ -86,7 +91,9 @@ export default async function PollaPage() {
 
     const progress = getPollaProgress({
       matchPredictions: member.matchPredictions.length,
-      knockoutPredictions: member.knockoutPredictions.length,
+      knockoutPredictions: member.knockoutPredictions.filter(
+        (k) => k.homeScore != null && k.awayScore != null,
+      ).length,
       hasTournamentPick: Boolean(
         member.tournamentPick?.champion ||
           member.tournamentPick?.topScorer ||

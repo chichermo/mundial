@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { getMatchOutcome, getMatchPoints, getTournamentPoints, SCORING_RULES } from "./scoring";
+import { getMatchOutcome, getMatchPoints, getKnockoutPoints, getTournamentPoints, SCORING_RULES } from "./scoring";
 
 describe("getMatchPoints", () => {
   it("otorga 5 pts por marcador exacto", () => {
@@ -17,6 +17,24 @@ describe("getMatchPoints", () => {
   it("otorga 0 pts si falla", () => {
     const pts = getMatchPoints({ homeScore: 2, awayScore: 1 }, { homeScore: 1, awayScore: 2 });
     assert.equal(pts, 0);
+  });
+});
+
+describe("getKnockoutPoints", () => {
+  it("otorga 5 pts por marcador exacto en eliminatoria", () => {
+    const pts = getKnockoutPoints(
+      { homeScore: 2, awayScore: 1, winnerLabel: "Brazil" },
+      { homeScore: 2, awayScore: 1, winnerLabel: "Brazil" },
+    );
+    assert.equal(pts, 5);
+  });
+
+  it("fallback +2 pts si solo hay pick de ganador legacy", () => {
+    const pts = getKnockoutPoints(
+      { homeScore: null, awayScore: null, winnerLabel: "Brazil" },
+      { homeScore: 2, awayScore: 1, winnerLabel: "Brazil" },
+    );
+    assert.equal(pts, SCORING_RULES.knockoutWinner);
   });
 });
 

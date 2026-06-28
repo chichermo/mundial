@@ -66,6 +66,8 @@ model KnockoutPrediction {
   member      Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   matchId     Int
   winnerLabel String
+  homeScore   Int?
+  awayScore   Int?
 
   @@unique([memberId, matchId])
 }

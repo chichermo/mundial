@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 const INCREMENTAL_SQL = [
   `ALTER TABLE "MatchPrediction" ADD COLUMN "homeScorers" TEXT NOT NULL DEFAULT '[]'`,
   `ALTER TABLE "MatchPrediction" ADD COLUMN "awayScorers" TEXT NOT NULL DEFAULT '[]'`,
+  `ALTER TABLE "KnockoutPrediction" ADD COLUMN "homeScore" INTEGER`,
+  `ALTER TABLE "KnockoutPrediction" ADD COLUMN "awayScore" INTEGER`,
 ];
 
 let migrationPromise: Promise<boolean> | null = null;
