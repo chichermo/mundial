@@ -1,6 +1,6 @@
 import type { KnockoutPrediction, Member, TournamentPick } from "@prisma/client";
 import { isMissingColumnError } from "@/lib/db-errors";
-import { ensureDbSchema } from "@/lib/ensure-db-schema";
+import { ensureDbSchema, hasFullKnockoutSchema } from "@/lib/ensure-db-schema";
 import { prisma } from "@/lib/prisma";
 
 type PredictionRow = {
@@ -23,69 +23,83 @@ export type PollaMemberData = {
   hasScorerColumns: boolean;
 };
 
-const KNOCKOUT_FULL = { knockoutPredictions: true } as const;
-const KNOCKOUT_LEGACY = {
-  knockoutPredictions: { select: { matchId: true, winnerLabel: true } },
-} as const;
+const baseWhere = (memberId: string, userId: string) => ({ id: memberId, userId });
 
 export async function loadPollaMember(
   memberId: string,
   userId: string,
 ): Promise<PollaMemberData | null> {
+  await ensureDbSchema();
+  const where = baseWhere(memberId, userId);
   const hasScorerColumns = await ensureDbSchema();
+  const hasKnockoutScores = await hasFullKnockoutSchema();
 
-  const baseWhere = { id: memberId, userId };
-  const tournamentInclude = { tournamentPick: true } as const;
+  const queries: Array<{
+    hasScorerColumns: boolean;
+    run: () => ReturnType<typeof prisma.member.findFirst>;
+  }> = [];
+
+  if (hasScorerColumns && hasKnockoutScores) {
+    queries.push({
+      hasScorerColumns: true,
+      run: () =>
+        prisma.member.findFirst({
+          where,
+          include: {
+            matchPredictions: true,
+            knockoutPredictions: true,
+            tournamentPick: true,
+          },
+        }),
+    });
+  }
 
   if (hasScorerColumns) {
+    queries.push({
+      hasScorerColumns: true,
+      run: () =>
+        prisma.member.findFirst({
+          where,
+          include: {
+            matchPredictions: true,
+            knockoutPredictions: { select: { matchId: true, winnerLabel: true } },
+            tournamentPick: true,
+          },
+        }),
+    });
+  }
+
+  queries.push({
+    hasScorerColumns: false,
+    run: () =>
+      prisma.member.findFirst({
+        where,
+        include: {
+          matchPredictions: {
+            select: { matchId: true, homeScore: true, awayScore: true },
+          },
+          knockoutPredictions: { select: { matchId: true, winnerLabel: true } },
+          tournamentPick: true,
+        },
+      }),
+  });
+
+  let lastError: unknown;
+  for (const q of queries) {
     try {
-      const member = await prisma.member.findFirst({
-        where: baseWhere,
-        include: { ...KNOCKOUT_FULL, ...tournamentInclude, matchPredictions: true },
-      });
-      if (member) return { member, hasScorerColumns: true };
-      return null;
-    } catch (err) {
-      if (!isMissingColumnError(err)) throw err;
-      try {
-        const member = await prisma.member.findFirst({
-          where: baseWhere,
-          include: { ...KNOCKOUT_LEGACY, ...tournamentInclude, matchPredictions: true },
-        });
-        if (member) return { member, hasScorerColumns: true };
-        return null;
-      } catch (inner) {
-        if (!isMissingColumnError(inner)) throw inner;
+      const member = await q.run();
+      if (member) {
+        return {
+          member: member as PollaMemberData["member"],
+          hasScorerColumns: q.hasScorerColumns,
+        };
       }
+    } catch (err) {
+      lastError = err;
+      if (!isMissingColumnError(err)) break;
     }
   }
 
-  try {
-    const member = await prisma.member.findFirst({
-      where: baseWhere,
-      include: {
-        ...KNOCKOUT_FULL,
-        ...tournamentInclude,
-        matchPredictions: {
-          select: { matchId: true, homeScore: true, awayScore: true },
-        },
-      },
-    });
-    if (member) return { member, hasScorerColumns: false };
-  } catch (err) {
-    if (!isMissingColumnError(err)) throw err;
-    const member = await prisma.member.findFirst({
-      where: baseWhere,
-      include: {
-        ...KNOCKOUT_LEGACY,
-        ...tournamentInclude,
-        matchPredictions: {
-          select: { matchId: true, homeScore: true, awayScore: true },
-        },
-      },
-    });
-    if (member) return { member, hasScorerColumns: false };
-  }
-
+  if (lastError && !isMissingColumnError(lastError)) throw lastError;
   return null;
 }

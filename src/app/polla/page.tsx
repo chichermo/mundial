@@ -20,13 +20,16 @@ import { getPollaSession, getUserSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-function PollaLoadError() {
+function PollaLoadError({ detail }: { detail?: string }) {
   return (
     <div className="card mx-auto max-w-md space-y-4 p-6 text-center">
       <p className="font-display text-2xl text-cream">No pudimos cargar la polla</p>
       <p className="text-sm text-muted">
         Error temporal de base de datos. Espera unos segundos e intenta de nuevo.
       </p>
+      {process.env.NODE_ENV === "development" && detail && (
+        <p className="break-all text-left text-xs text-red-300">{detail}</p>
+      )}
       <Link href="/polla" className="btn-primary inline-block">
         Reintentar
       </Link>
@@ -46,8 +49,9 @@ export default async function PollaPage() {
     loaded = await loadPollaMember(polla.memberId, user.userId);
   } catch (err) {
     rethrowIfNavigationError(err);
-    console.error("[polla] Error cargando datos:", err);
-    return <PollaLoadError />;
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[polla] Error cargando datos:", detail);
+    return <PollaLoadError detail={detail} />;
   }
 
   if (!loaded) redirect("/polla/grupos");
@@ -137,7 +141,8 @@ export default async function PollaPage() {
     );
   } catch (err) {
     rethrowIfNavigationError(err);
-    console.error("[polla] Error renderizando página:", err);
-    return <PollaLoadError />;
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[polla] Error renderizando página:", detail);
+    return <PollaLoadError detail={detail} />;
   }
 }

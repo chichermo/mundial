@@ -9,6 +9,7 @@ const INCREMENTAL_SQL = [
 ];
 
 let migrationPromise: Promise<void> | null = null;
+let schemaReady = false;
 
 async function tableColumnNames(table: string): Promise<Set<string>> {
   try {
@@ -32,7 +33,10 @@ async function hasKnockoutScoreColumns(): Promise<boolean> {
 }
 
 async function isSchemaUpToDate(): Promise<boolean> {
-  return (await hasScorerColumns()) && (await hasKnockoutScoreColumns());
+  if (schemaReady) return true;
+  const ok = (await hasScorerColumns()) && (await hasKnockoutScoreColumns());
+  if (ok) schemaReady = true;
+  return ok;
 }
 
 /** Aplica ALTERs pendientes. Devuelve true si las columnas de goleadores existen. */
@@ -45,6 +49,9 @@ export async function ensureDbSchema(): Promise<boolean> {
     });
   }
   await migrationPromise;
+
+  const ok = (await hasScorerColumns()) && (await hasKnockoutScoreColumns());
+  if (ok) schemaReady = true;
   return hasScorerColumns();
 }
 
@@ -73,6 +80,7 @@ async function runMigrations(): Promise<void> {
         }
       }
     }
+    return;
   }
 
   for (const sql of INCREMENTAL_SQL) {

@@ -108,6 +108,8 @@ try {
 const INCREMENTAL = [
   `ALTER TABLE "MatchPrediction" ADD COLUMN "homeScorers" TEXT NOT NULL DEFAULT '[]'`,
   `ALTER TABLE "MatchPrediction" ADD COLUMN "awayScorers" TEXT NOT NULL DEFAULT '[]'`,
+  `ALTER TABLE "KnockoutPrediction" ADD COLUMN "homeScore" INTEGER`,
+  `ALTER TABLE "KnockoutPrediction" ADD COLUMN "awayScore" INTEGER`,
 ];
 
 console.log("→ Migraciones incrementales…");
