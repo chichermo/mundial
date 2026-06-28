@@ -45,8 +45,8 @@ function BracketMatchCard({
   onPick?: Props["onPick"];
   interactive?: boolean;
 }) {
-  const locked = isPredictionLocked(match, result, match.id);
-  const reason = lockReason(match, result, match.id);
+  const locked = isPredictionLocked(match, result);
+  const reason = lockReason(match, result);
   const winner = getWinnerName(match, result);
   const { time, dateLabel } = formatKickoffInZone(
     match.date,

@@ -2931,10 +2931,94 @@
     },
     {
       "id": 73,
-      "date": "2026-06-28",
-      "kickoffEst": "15:00",
+      "date": "2026-06-29",
+      "kickoffEst": "16:30",
       "home": "Germany",
       "away": "Paraguay",
+      "group": null,
+      "phase": "round32",
+      "venue": "Gillette Stadium",
+      "city": "Boston",
+      "broadcast": {
+        "chile": {
+          "all": [
+            "DSports",
+            "DGo",
+            "Paramount+"
+          ],
+          "freeTv": [
+            "Chilevisión"
+          ],
+          "premium": []
+        },
+        "spain": {
+          "all": [
+            "DAZN",
+            "Movistar+ (DAZN Mundial)"
+          ],
+          "freeTv": []
+        },
+        "belgium": {
+          "all": [
+            "VRT (Eén/Sporza)",
+            "RTBF (La Une)"
+          ],
+          "stream": [
+            "VRT MAX",
+            "RTBF Auvio"
+          ]
+        }
+      }
+    },
+    {
+      "id": 74,
+      "date": "2026-06-30",
+      "kickoffEst": "17:00",
+      "home": "France",
+      "away": "Sweden",
+      "group": null,
+      "phase": "round32",
+      "venue": "MetLife Stadium",
+      "city": "New York/New Jersey",
+      "broadcast": {
+        "chile": {
+          "all": [
+            "DSports",
+            "DGo",
+            "Paramount+"
+          ],
+          "freeTv": [
+            "Chilevisión"
+          ],
+          "premium": [
+            "Disney+ Premium"
+          ]
+        },
+        "spain": {
+          "all": [
+            "DAZN",
+            "Movistar+ (DAZN Mundial)"
+          ],
+          "freeTv": []
+        },
+        "belgium": {
+          "all": [
+            "VRT (Eén/Sporza)",
+            "RTBF (La Une)"
+          ],
+          "stream": [
+            "VRT MAX",
+            "RTBF Auvio"
+          ]
+        }
+      }
+    },
+    {
+      "id": 75,
+      "date": "2026-06-28",
+      "kickoffEst": "15:00",
+      "home": "South Africa",
+      "away": "Canada",
       "group": null,
       "phase": "round32",
       "venue": "SoFi Stadium",
@@ -2971,97 +3055,15 @@
       }
     },
     {
-      "id": 74,
-      "date": "2026-06-29",
-      "kickoffEst": "16:30",
-      "home": "France",
-      "away": "Sweden",
-      "group": null,
-      "phase": "round32",
-      "venue": "Gillette Stadium",
-      "city": "Boston",
-      "broadcast": {
-        "chile": {
-          "all": [
-            "DSports",
-            "DGo",
-            "Paramount+"
-          ],
-          "freeTv": [
-            "Chilevisión"
-          ],
-          "premium": [
-            "Disney+ Premium"
-          ]
-        },
-        "spain": {
-          "all": [
-            "DAZN",
-            "Movistar+ (DAZN Mundial)"
-          ],
-          "freeTv": []
-        },
-        "belgium": {
-          "all": [
-            "VRT (Eén/Sporza)",
-            "RTBF (La Une)"
-          ],
-          "stream": [
-            "VRT MAX",
-            "RTBF Auvio"
-          ]
-        }
-      }
-    },
-    {
-      "id": 75,
-      "date": "2026-06-29",
-      "kickoffEst": "21:00",
-      "home": "South Africa",
-      "away": "Canada",
-      "group": null,
-      "phase": "round32",
-      "venue": "Estadio BBVA",
-      "city": "Monterrey",
-      "broadcast": {
-        "chile": {
-          "all": [
-            "DSports",
-            "DGo",
-            "Paramount+"
-          ],
-          "freeTv": [],
-          "premium": []
-        },
-        "spain": {
-          "all": [
-            "DAZN",
-            "Movistar+ (DAZN Mundial)"
-          ],
-          "freeTv": []
-        },
-        "belgium": {
-          "all": [
-            "VRT (Eén/Sporza)",
-            "RTBF (La Une)"
-          ],
-          "stream": [
-            "VRT MAX",
-            "RTBF Auvio"
-          ]
-        }
-      }
-    },
-    {
       "id": 76,
       "date": "2026-06-29",
-      "kickoffEst": "13:00",
+      "kickoffEst": "21:00",
       "home": "Netherlands",
       "away": "Morocco",
       "group": null,
       "phase": "round32",
-      "venue": "NRG Stadium",
-      "city": "Houston",
+      "venue": "Estadio BBVA",
+      "city": "Monterrey",
       "broadcast": {
         "chile": {
           "all": [
@@ -3095,14 +3097,14 @@
     },
     {
       "id": 77,
-      "date": "2026-06-30",
-      "kickoffEst": "17:00",
+      "date": "2026-07-02",
+      "kickoffEst": "19:00",
       "home": "Portugal",
       "away": "Croatia",
       "group": null,
       "phase": "round32",
-      "venue": "MetLife Stadium",
-      "city": "New York/New Jersey",
+      "venue": "BMO Field",
+      "city": "Toronto",
       "broadcast": {
         "chile": {
           "all": [
@@ -3134,14 +3136,14 @@
     },
     {
       "id": 78,
-      "date": "2026-06-30",
-      "kickoffEst": "13:00",
+      "date": "2026-07-02",
+      "kickoffEst": "15:00",
       "home": "Spain",
       "away": "Austria",
       "group": null,
       "phase": "round32",
-      "venue": "AT&T Stadium",
-      "city": "Dallas",
+      "venue": "SoFi Stadium",
+      "city": "Los Angeles",
       "broadcast": {
         "chile": {
           "all": [
@@ -3180,93 +3182,10 @@
     },
     {
       "id": 79,
-      "date": "2026-06-30",
-      "kickoffEst": "21:00",
-      "home": "USA",
-      "away": "Bosnia and Herzegovina",
-      "group": null,
-      "phase": "round32",
-      "venue": "Estadio Azteca",
-      "city": "Mexico City",
-      "broadcast": {
-        "chile": {
-          "all": [
-            "DSports",
-            "DGo",
-            "Paramount+"
-          ],
-          "freeTv": [
-            "Chilevisión"
-          ],
-          "premium": []
-        },
-        "spain": {
-          "all": [
-            "DAZN",
-            "Movistar+ (DAZN Mundial)"
-          ],
-          "freeTv": []
-        },
-        "belgium": {
-          "all": [
-            "VRT (Eén/Sporza)",
-            "RTBF (La Une)"
-          ],
-          "stream": [
-            "VRT MAX",
-            "RTBF Auvio"
-          ]
-        }
-      }
-    },
-    {
-      "id": 80,
-      "date": "2026-07-01",
-      "kickoffEst": "12:00",
-      "home": "Belgium",
-      "away": "Senegal",
-      "group": null,
-      "phase": "round32",
-      "venue": "Mercedes-Benz Stadium",
-      "city": "Atlanta",
-      "broadcast": {
-        "chile": {
-          "all": [
-            "DSports",
-            "DGo",
-            "Paramount+"
-          ],
-          "freeTv": [],
-          "premium": []
-        },
-        "spain": {
-          "all": [
-            "DAZN",
-            "Movistar+ (DAZN Mundial)"
-          ],
-          "freeTv": [
-            "La 1 / Teledeporte",
-            "RTVE Play"
-          ]
-        },
-        "belgium": {
-          "all": [
-            "VRT (Eén/Sporza)",
-            "RTBF (La Une)"
-          ],
-          "stream": [
-            "VRT MAX",
-            "RTBF Auvio"
-          ]
-        }
-      }
-    },
-    {
-      "id": 81,
       "date": "2026-07-01",
       "kickoffEst": "20:00",
-      "home": "Brazil",
-      "away": "Japan",
+      "home": "USA",
+      "away": "Bosnia and Herzegovina",
       "group": null,
       "phase": "round32",
       "venue": "Levi's Stadium",
@@ -3303,15 +3222,98 @@
       }
     },
     {
-      "id": 82,
+      "id": 80,
       "date": "2026-07-01",
       "kickoffEst": "16:00",
-      "home": "Ivory Coast",
-      "away": "Norway",
+      "home": "Belgium",
+      "away": "Senegal",
       "group": null,
       "phase": "round32",
       "venue": "Lumen Field",
       "city": "Seattle",
+      "broadcast": {
+        "chile": {
+          "all": [
+            "DSports",
+            "DGo",
+            "Paramount+"
+          ],
+          "freeTv": [],
+          "premium": []
+        },
+        "spain": {
+          "all": [
+            "DAZN",
+            "Movistar+ (DAZN Mundial)"
+          ],
+          "freeTv": [
+            "La 1 / Teledeporte",
+            "RTVE Play"
+          ]
+        },
+        "belgium": {
+          "all": [
+            "VRT (Eén/Sporza)",
+            "RTBF (La Une)"
+          ],
+          "stream": [
+            "VRT MAX",
+            "RTBF Auvio"
+          ]
+        }
+      }
+    },
+    {
+      "id": 81,
+      "date": "2026-06-29",
+      "kickoffEst": "13:00",
+      "home": "Brazil",
+      "away": "Japan",
+      "group": null,
+      "phase": "round32",
+      "venue": "NRG Stadium",
+      "city": "Houston",
+      "broadcast": {
+        "chile": {
+          "all": [
+            "DSports",
+            "DGo",
+            "Paramount+"
+          ],
+          "freeTv": [
+            "Chilevisión"
+          ],
+          "premium": []
+        },
+        "spain": {
+          "all": [
+            "DAZN",
+            "Movistar+ (DAZN Mundial)"
+          ],
+          "freeTv": []
+        },
+        "belgium": {
+          "all": [
+            "VRT (Eén/Sporza)",
+            "RTBF (La Une)"
+          ],
+          "stream": [
+            "VRT MAX",
+            "RTBF Auvio"
+          ]
+        }
+      }
+    },
+    {
+      "id": 82,
+      "date": "2026-06-30",
+      "kickoffEst": "13:00",
+      "home": "Ivory Coast",
+      "away": "Norway",
+      "group": null,
+      "phase": "round32",
+      "venue": "AT&T Stadium",
+      "city": "Dallas",
       "broadcast": {
         "chile": {
           "all": [
@@ -3343,14 +3345,14 @@
     },
     {
       "id": 83,
-      "date": "2026-07-02",
-      "kickoffEst": "19:00",
+      "date": "2026-06-30",
+      "kickoffEst": "21:00",
       "home": "Mexico",
       "away": "Ecuador",
       "group": null,
       "phase": "round32",
-      "venue": "BMO Field",
-      "city": "Toronto",
+      "venue": "Estadio Azteca",
+      "city": "Mexico City",
       "broadcast": {
         "chile": {
           "all": [
@@ -3382,14 +3384,14 @@
     },
     {
       "id": 84,
-      "date": "2026-07-02",
-      "kickoffEst": "15:00",
+      "date": "2026-07-01",
+      "kickoffEst": "12:00",
       "home": "England",
       "away": "Congo DR",
       "group": null,
       "phase": "round32",
-      "venue": "SoFi Stadium",
-      "city": "Los Angeles",
+      "venue": "Mercedes-Benz Stadium",
+      "city": "Atlanta",
       "broadcast": {
         "chile": {
           "all": [
@@ -3425,14 +3427,14 @@
     },
     {
       "id": 85,
-      "date": "2026-07-02",
-      "kickoffEst": "23:00",
+      "date": "2026-07-03",
+      "kickoffEst": "18:00",
       "home": "Argentina",
       "away": "Cape Verde",
       "group": null,
       "phase": "round32",
-      "venue": "BC Place",
-      "city": "Vancouver",
+      "venue": "Hard Rock Stadium",
+      "city": "Miami",
       "broadcast": {
         "chile": {
           "all": [
@@ -3465,13 +3467,13 @@
     {
       "id": 86,
       "date": "2026-07-03",
-      "kickoffEst": "18:00",
+      "kickoffEst": "14:00",
       "home": "Australia",
       "away": "Egypt",
       "group": null,
       "phase": "round32",
-      "venue": "Hard Rock Stadium",
-      "city": "Miami",
+      "venue": "AT&T Stadium",
+      "city": "Dallas",
       "broadcast": {
         "chile": {
           "all": [
@@ -3505,14 +3507,14 @@
     },
     {
       "id": 87,
-      "date": "2026-07-03",
-      "kickoffEst": "21:30",
+      "date": "2026-07-02",
+      "kickoffEst": "23:00",
       "home": "Switzerland",
       "away": "Algeria",
       "group": null,
       "phase": "round32",
-      "venue": "Arrowhead Stadium",
-      "city": "Kansas City",
+      "venue": "BC Place",
+      "city": "Vancouver",
       "broadcast": {
         "chile": {
           "all": [
@@ -3547,13 +3549,13 @@
     {
       "id": 88,
       "date": "2026-07-03",
-      "kickoffEst": "14:00",
+      "kickoffEst": "21:30",
       "home": "Colombia",
       "away": "Ghana",
       "group": null,
       "phase": "round32",
-      "venue": "AT&T Stadium",
-      "city": "Dallas",
+      "venue": "Arrowhead Stadium",
+      "city": "Kansas City",
       "broadcast": {
         "chile": {
           "all": [

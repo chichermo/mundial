@@ -118,8 +118,8 @@ export function MatchCard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const locked = isPredictionLocked(match, result, match.id);
-  const closedLabel = lockReason(match, result, match.id);
+  const locked = isPredictionLocked(match, result);
+  const closedLabel = lockReason(match, result);
   const countdown = useCountdown(match.date, match.kickoffEst, !result?.homeScore);
 
   useEffect(() => {
