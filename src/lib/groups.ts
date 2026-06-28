@@ -80,29 +80,47 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
       };
 
   let members;
+  const knockoutInclude = { knockoutPredictions: true as const };
+  const knockoutLegacy = {
+    knockoutPredictions: { select: { matchId: true, winnerLabel: true } },
+  } as const;
+
   try {
     members = await prisma.member.findMany({
       where: { groupId },
       include: {
         ...predictionInclude,
-        knockoutPredictions: true,
+        ...knockoutInclude,
         tournamentPick: true,
       },
       orderBy: { createdAt: "asc" },
     });
   } catch (err) {
     if (!isMissingColumnError(err)) throw err;
-    members = await prisma.member.findMany({
-      where: { groupId },
-      include: {
-        matchPredictions: {
-          select: { matchId: true, homeScore: true, awayScore: true },
+    try {
+      members = await prisma.member.findMany({
+        where: { groupId },
+        include: {
+          matchPredictions: {
+            select: { matchId: true, homeScore: true, awayScore: true },
+          },
+          ...knockoutLegacy,
+          tournamentPick: true,
         },
-        knockoutPredictions: true,
-        tournamentPick: true,
-      },
-      orderBy: { createdAt: "asc" },
-    });
+        orderBy: { createdAt: "asc" },
+      });
+    } catch (inner) {
+      if (!isMissingColumnError(inner)) throw inner;
+      members = await prisma.member.findMany({
+        where: { groupId },
+        include: {
+          ...predictionInclude,
+          ...knockoutLegacy,
+          tournamentPick: true,
+        },
+        orderBy: { createdAt: "asc" },
+      });
+    }
   }
 
   const results = await prisma.matchResult.findMany();
@@ -165,11 +183,16 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
         result?.homeScore != null &&
         result?.awayScore != null
       ) {
+        const pick = kp as {
+          winnerLabel: string;
+          homeScore?: number | null;
+          awayScore?: number | null;
+        };
         knockoutPts += getKnockoutPoints(
           {
-            homeScore: kp.homeScore,
-            awayScore: kp.awayScore,
-            winnerLabel: kp.winnerLabel,
+            homeScore: pick.homeScore ?? null,
+            awayScore: pick.awayScore ?? null,
+            winnerLabel: pick.winnerLabel,
           },
           {
             homeScore: result.homeScore,

@@ -8,11 +8,36 @@ const INCREMENTAL_SQL = [
   `ALTER TABLE "KnockoutPrediction" ADD COLUMN "awayScore" INTEGER`,
 ];
 
-let migrationPromise: Promise<boolean> | null = null;
+let migrationPromise: Promise<void> | null = null;
 
-/** Aplica ALTERs pendientes y devuelve true si las columnas de goleadores existen. */
+async function tableColumnNames(table: string): Promise<Set<string>> {
+  try {
+    const rows = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
+      `PRAGMA table_info("${table}")`,
+    );
+    return new Set(rows.map((r) => r.name));
+  } catch {
+    return new Set();
+  }
+}
+
+async function hasScorerColumns(): Promise<boolean> {
+  const names = await tableColumnNames("MatchPrediction");
+  return names.has("homeScorers") && names.has("awayScorers");
+}
+
+async function hasKnockoutScoreColumns(): Promise<boolean> {
+  const names = await tableColumnNames("KnockoutPrediction");
+  return names.has("homeScore") && names.has("awayScore");
+}
+
+async function isSchemaUpToDate(): Promise<boolean> {
+  return (await hasScorerColumns()) && (await hasKnockoutScoreColumns());
+}
+
+/** Aplica ALTERs pendientes. Devuelve true si las columnas de goleadores existen. */
 export async function ensureDbSchema(): Promise<boolean> {
-  if (await hasScorerColumns()) return true;
+  if (await isSchemaUpToDate()) return true;
 
   if (!migrationPromise) {
     migrationPromise = runMigrations().finally(() => {
@@ -23,26 +48,19 @@ export async function ensureDbSchema(): Promise<boolean> {
   return hasScorerColumns();
 }
 
-async function hasScorerColumns(): Promise<boolean> {
-  try {
-    const rows = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
-      `PRAGMA table_info("MatchPrediction")`,
-    );
-    const names = new Set(rows.map((r) => r.name));
-    return names.has("homeScorers") && names.has("awayScorers");
-  } catch {
-    return false;
-  }
+export async function hasFullKnockoutSchema(): Promise<boolean> {
+  await ensureDbSchema();
+  return hasKnockoutScoreColumns();
 }
 
-async function runMigrations(): Promise<boolean> {
+async function runMigrations(): Promise<void> {
   const url = process.env.DATABASE_URL ?? "";
 
   if (url.startsWith("libsql:")) {
     const token = process.env.DATABASE_AUTH_TOKEN;
     if (!token) {
       console.error("[ensure-db-schema] Falta DATABASE_AUTH_TOKEN");
-      return false;
+      return;
     }
     const client = createClient({ url, authToken: token });
     for (const sql of INCREMENTAL_SQL) {
@@ -67,6 +85,4 @@ async function runMigrations(): Promise<boolean> {
       }
     }
   }
-
-  return hasScorerColumns();
 }

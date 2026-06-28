@@ -37,11 +37,13 @@ export async function GET() {
     const resultsWithScore = await prisma.matchResult.count({
       where: { homeScore: { not: null }, awayScore: { not: null } },
     });
+    await prisma.knockoutPrediction.findFirst({ select: { matchId: true, homeScore: true } });
     return NextResponse.json({
       ok: true,
       db: true,
-      build: "2026-06-12a",
+      build: "2026-06-28a",
       scorerColumns,
+      knockoutScoreColumns: true,
       resultsWithScore,
       env: { libsql: url.startsWith("libsql:"), hasToken },
     });
