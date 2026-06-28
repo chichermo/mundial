@@ -1,12 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BroadcastPanel } from "@/components/BroadcastPanel";
+import { MatchComments } from "@/components/MatchComments";
+import { MatchCompare } from "@/components/MatchCompare";
+import { MatchStatusBadge } from "@/components/MatchStatusBadge";
+import { TimezoneStrip } from "@/components/TimezoneStrip";
 import { TeamFlag } from "@/components/bracket/TeamFlag";
+import { useCountdown } from "@/hooks/useCountdown";
 import { getMatch } from "@/lib/matches-data";
 import type { BracketMatchResult } from "@/lib/knockout-bracket";
 import { knockoutLabelsMatch } from "@/lib/knockout-labels";
 import { isPredictionLocked, lockReason } from "@/lib/match-lock";
-import type { KnockoutPickData } from "@/lib/knockout-predict";
+import {
+  formatKnockoutPredictionDisplay,
+  type KnockoutPickData,
+} from "@/lib/knockout-predict";
 import { resolveDisplayTeams } from "@/lib/knockout-rounds";
 import {
   formatScoreInput,
@@ -14,6 +23,7 @@ import {
   sanitizeScoreInput,
 } from "@/lib/score-input";
 import { getKnockoutPoints, SCORING_RULES } from "@/lib/scoring";
+import { formatKickoffInZone } from "@/lib/timezones";
 import { teamShortName } from "@/lib/team-flags";
 
 type Props = {
@@ -23,6 +33,7 @@ type Props = {
   interactive?: boolean;
   onSave?: (matchId: number, home: number, away: number, winnerLabel?: string) => Promise<void>;
   compact?: boolean;
+  showSocial?: boolean;
 };
 
 export function BracketMatchNode({
@@ -32,6 +43,7 @@ export function BracketMatchNode({
   interactive,
   onSave,
   compact,
+  showSocial = false,
 }: Props) {
   const match = getMatch(matchId);
   const result = results[matchId];
@@ -39,7 +51,13 @@ export function BracketMatchNode({
   const { home, away } = teams;
   const locked = match ? isPredictionLocked(match, result) : true;
   const reason = match ? lockReason(match, result) : "";
+  const countdown = useCountdown(
+    match?.date ?? "",
+    match?.kickoffEst ?? "",
+    Boolean(match && !result?.homeScore),
+  );
 
+  const [expanded, setExpanded] = useState(false);
   const [homeInput, setHomeInput] = useState(() => formatScoreInput(pick?.homeScore));
   const [awayInput, setAwayInput] = useState(() => formatScoreInput(pick?.awayScore));
   const [advancer, setAdvancer] = useState(pick?.winnerLabel ?? "");
@@ -53,6 +71,12 @@ export function BracketMatchNode({
   }, [pick?.homeScore, pick?.awayScore, pick?.winnerLabel]);
 
   if (!match) return null;
+
+  const { time, dateLabel } = formatKickoffInZone(
+    match.date,
+    match.kickoffEst,
+    "America/Santiago",
+  );
 
   const homeParsed = parseScoreInput(homeInput);
   const awayParsed = parseScoreInput(awayInput);
@@ -108,126 +132,163 @@ export function BracketMatchNode({
   }
 
   const showOfficial = official && !interactive;
-  const savedAdvancer =
-    pick?.winnerLabel &&
-    (pick.homeScore === pick.awayScore ||
-      (official && official.homeScore === official.awayScore));
+  const pickLabel = pick ? formatKnockoutPredictionDisplay(pick) : null;
+  const canEdit = interactive && onSave && !locked;
 
   return (
     <div
       id={`partido-${matchId}`}
-      className={`relative rounded-xl border bg-pitch/60 p-2.5 sm:p-3 ${
-        winner ? "border-lime/50 shadow-[0_0_20px_rgba(125,255,79,0.08)]" : "border-pitch-mid/60"
+      className={`relative scroll-mt-24 rounded-xl border bg-pitch/60 ${
+        winner
+          ? "border-lime/50 shadow-[0_0_20px_rgba(125,255,79,0.08)]"
+          : locked
+            ? "border-pitch-mid/50 bg-pitch/40"
+            : "border-pitch-mid/60"
       } ${compact ? "text-xs" : "text-sm"}`}
     >
-      <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wider text-gold">
-        #{matchId}
-      </p>
-
-      <div className="flex items-center justify-center gap-2 sm:gap-3">
-        <TeamBadge
-          name={home}
-          score={showOfficial ? official.homeScore : pick?.homeScore}
-          winner={winner === home}
-          selected={advancer === home}
-        />
-        <div className="flex flex-col items-center gap-1">
-          <span className="rounded bg-ink px-2 py-0.5 text-[10px] font-bold text-cream">VS</span>
-          {showOfficial && earnedPts != null && (
-            <span
-              className={`text-[10px] font-semibold ${
-                earnedPts >= SCORING_RULES.exactScore
-                  ? "text-lime"
-                  : earnedPts >= SCORING_RULES.correctResult
-                    ? "text-gold"
-                    : "text-muted"
-              }`}
-            >
-              {earnedPts > 0 ? `+${earnedPts}` : "0"}
+      <div className="p-2.5 sm:p-3">
+        <div className="mb-2 flex flex-wrap items-center justify-center gap-1.5">
+          <span className="font-display text-sm text-lime">#{matchId}</span>
+          <MatchStatusBadge match={match} result={result} />
+          {countdown && !locked && (
+            <span className="text-[10px] text-gold">{countdown}</span>
+          )}
+          {locked && reason && (
+            <span className="rounded bg-pitch-mid/80 px-1.5 py-0.5 text-[10px] text-gold">
+              {reason}
             </span>
           )}
         </div>
-        <TeamBadge
-          name={away}
-          score={showOfficial ? official.awayScore : pick?.awayScore}
-          winner={winner === away}
-          selected={advancer === away}
-        />
+
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          <TeamBadge
+            name={home}
+            score={showOfficial ? official.homeScore : pick?.homeScore}
+            winner={winner === home}
+            selected={advancer === home}
+          />
+          <div className="flex flex-col items-center gap-1">
+            <span className="rounded bg-ink px-2 py-0.5 text-[10px] font-bold text-cream">VS</span>
+            {official && earnedPts != null && (
+              <span
+                className={`text-[10px] font-semibold ${
+                  earnedPts >= SCORING_RULES.exactScore
+                    ? "text-lime"
+                    : earnedPts >= SCORING_RULES.correctResult
+                      ? "text-gold"
+                      : "text-muted"
+                }`}
+              >
+                {earnedPts > 0 ? `+${earnedPts}` : "0"}
+              </span>
+            )}
+          </div>
+          <TeamBadge
+            name={away}
+            score={showOfficial ? official.awayScore : pick?.awayScore}
+            winner={winner === away}
+            selected={advancer === away}
+          />
+        </div>
+
+        <p className="mt-2 text-center text-[10px] text-muted">
+          {dateLabel} · {time} Chile
+        </p>
+        <p className="text-center text-[10px] text-muted">
+          {match.venue} · {match.city}
+        </p>
+
+        {canEdit && (
+          <div className="mt-3 space-y-2.5 border-t border-pitch-mid/40 pt-2">
+            <p className="text-center text-[10px] text-muted">Marcador (90&apos; + prórroga)</p>
+            <div className="flex items-center justify-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                value={homeInput}
+                onChange={(e) => setHomeInput(sanitizeScoreInput(e.target.value))}
+                className="h-9 w-10 rounded-lg border border-pitch-mid bg-pitch text-center text-cream focus:ring-2 focus:ring-lime"
+                aria-label={`Goles ${home}`}
+              />
+              <span className="text-muted">-</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                value={awayInput}
+                onChange={(e) => setAwayInput(sanitizeScoreInput(e.target.value))}
+                className="h-9 w-10 rounded-lg border border-pitch-mid bg-pitch text-center text-cream focus:ring-2 focus:ring-lime"
+                aria-label={`Goles ${away}`}
+              />
+              <button
+                type="button"
+                onClick={save}
+                disabled={saving || homeInput === "" || awayInput === ""}
+                className="btn-primary min-h-9 px-2 text-[10px]"
+              >
+                {saving ? "…" : "Guardar"}
+              </button>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-center text-[10px] text-gold">
+                Quién clasifica{isTiePick ? " · obligatorio" : " · si empatas"}
+              </p>
+              <div className="flex justify-center gap-2">
+                <AdvancerButton
+                  team={home}
+                  active={advancer === home}
+                  onClick={() => setAdvancer(home)}
+                />
+                <AdvancerButton
+                  team={away}
+                  active={advancer === away}
+                  onClick={() => setAdvancer(away)}
+                />
+              </div>
+            </div>
+
+            {error && <p className="text-center text-[10px] text-red-300">{error}</p>}
+          </div>
+        )}
+
+        {interactive && locked && pickLabel && (
+          <p className="mt-2 text-center text-[10px] text-gold">Tu pronóstico: {pickLabel}</p>
+        )}
+
+        {official && (
+          <p className="mt-2 text-center text-[10px] text-lime">
+            Oficial: {official.homeScore}-{official.awayScore}
+            {winner ? ` · ${teamShortName(winner)}` : ""}
+          </p>
+        )}
+
+        {!interactive && pickLabel && !showOfficial && (
+          <p className="mt-2 text-center text-[10px] text-gold">Tu pick: {pickLabel}</p>
+        )}
       </div>
 
-      {interactive && onSave && !locked && (
-        <div className="mt-3 space-y-2.5 border-t border-pitch-mid/40 pt-2">
-          <p className="text-center text-[10px] text-muted">Marcador (90&apos; + prórroga)</p>
-          <div className="flex items-center justify-center gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              value={homeInput}
-              onChange={(e) => setHomeInput(sanitizeScoreInput(e.target.value))}
-              className="h-9 w-10 rounded-lg border border-pitch-mid bg-pitch text-center text-cream"
-              aria-label={`Goles ${home}`}
-            />
-            <span className="text-muted">-</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={2}
-              value={awayInput}
-              onChange={(e) => setAwayInput(sanitizeScoreInput(e.target.value))}
-              className="h-9 w-10 rounded-lg border border-pitch-mid bg-pitch text-center text-cream"
-              aria-label={`Goles ${away}`}
-            />
-            <button
-              type="button"
-              onClick={save}
-              disabled={saving || homeInput === "" || awayInput === ""}
-              className="btn-primary min-h-9 px-2 text-[10px]"
-            >
-              {saving ? "…" : "OK"}
-            </button>
-          </div>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full min-h-[36px] border-t border-pitch-mid/40 px-2 py-2 text-[10px] font-medium text-lime hover:bg-pitch-mid/30"
+        aria-expanded={expanded}
+      >
+        {expanded ? "Ocultar detalles" : "Horario · transmisión · grupo"}
+      </button>
 
-          <div className="space-y-1.5">
-            <p className="text-center text-[10px] text-gold">
-              Quién clasifica{isTiePick ? " · obligatorio" : " · si empatas"}
-            </p>
-            <div className="flex justify-center gap-2">
-              <AdvancerButton
-                team={home}
-                active={advancer === home}
-                onClick={() => setAdvancer(home)}
-              />
-              <AdvancerButton
-                team={away}
-                active={advancer === away}
-                onClick={() => setAdvancer(away)}
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-center text-[10px] text-red-300">{error}</p>}
+      {expanded && (
+        <div className="space-y-3 border-t border-pitch-mid/40 px-2.5 pb-3 pt-2 sm:px-3">
+          <TimezoneStrip date={match.date} kickoffEst={match.kickoffEst} highlight="chile" />
+          <BroadcastPanel broadcast={match.broadcast} />
+          {showSocial && (
+            <>
+              <MatchCompare matchId={matchId} />
+              <MatchComments matchId={matchId} />
+            </>
+          )}
         </div>
-      )}
-
-      {locked && reason && !winner && (
-        <p className="mt-2 text-center text-[10px] text-gold">{reason}</p>
-      )}
-
-      {showOfficial && (
-        <p className="mt-2 text-center text-[10px] text-lime">
-          {official.homeScore}-{official.awayScore}
-          {winner ? ` · ${teamShortName(winner)}` : ""}
-        </p>
-      )}
-
-      {!interactive && pick?.homeScore != null && pick?.awayScore != null && !showOfficial && (
-        <p className="mt-2 text-center text-[10px] text-gold">
-          Tu pick: {pick.homeScore}-{pick.awayScore}
-          {savedAdvancer && pick.winnerLabel
-            ? ` · ${teamShortName(pick.winnerLabel)}`
-            : ""}
-        </p>
       )}
     </div>
   );
@@ -236,17 +297,20 @@ export function BracketMatchNode({
 function AdvancerButton({
   team,
   active,
+  disabled,
   onClick,
 }: {
   team: string;
   active: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors ${
+      disabled={disabled}
+      className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors disabled:opacity-50 ${
         active
           ? "border-lime bg-lime/15 ring-1 ring-lime/40"
           : "border-pitch-mid/80 bg-pitch/80 hover:border-gold/50"

@@ -13,9 +13,18 @@ type Props = {
   interactive?: boolean;
   onSave?: (matchId: number, home: number, away: number, winnerLabel?: string) => Promise<void>;
   archived?: boolean;
+  showSocial?: boolean;
 };
 
-export function BracketTree({ phase, results, picks, interactive, onSave, archived }: Props) {
+export function BracketTree({
+  phase,
+  results,
+  picks,
+  interactive,
+  onSave,
+  archived,
+  showSocial,
+}: Props) {
   const { left, right } = splitBracketHalves(phase);
   const canInteract = interactive && !archived;
 
@@ -50,6 +59,7 @@ export function BracketTree({ phase, results, picks, interactive, onSave, archiv
               pick={picks[id]}
               interactive={canInteract}
               onSave={onSave}
+              showSocial={showSocial}
             />
           ))}
         </div>
@@ -72,6 +82,7 @@ export function BracketTree({ phase, results, picks, interactive, onSave, archiv
               pick={picks[id]}
               interactive={canInteract}
               onSave={onSave}
+              showSocial={showSocial}
             />
           ))}
         </div>

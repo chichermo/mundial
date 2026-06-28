@@ -1,4 +1,5 @@
 import type { Match } from "@/lib/matches-data";
+import { teamShortName } from "@/lib/team-flags";
 import { getMatchOutcome } from "@/lib/scoring";
 
 export type KnockoutPickData = {
@@ -6,6 +7,20 @@ export type KnockoutPickData = {
   homeScore?: number | null;
   awayScore?: number | null;
 };
+
+export function formatKnockoutPredictionDisplay(
+  pred: Pick<KnockoutPickData, "homeScore" | "awayScore" | "winnerLabel">,
+): string | null {
+  if (pred.homeScore != null && pred.awayScore != null) {
+    let label = `${pred.homeScore}-${pred.awayScore}`;
+    if (pred.homeScore === pred.awayScore && pred.winnerLabel) {
+      label += ` (${teamShortName(pred.winnerLabel)})`;
+    }
+    return label;
+  }
+  if (pred.winnerLabel) return pred.winnerLabel;
+  return null;
+}
 
 export function deriveKnockoutWinnerLabel(
   match: Pick<Match, "home" | "away">,

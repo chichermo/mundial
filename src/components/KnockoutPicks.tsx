@@ -53,7 +53,8 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
         <p className="mt-1 text-xs text-muted sm:text-sm">
           Marcador: <strong className="text-lime">+5</strong> exacto,{" "}
           <strong className="text-gold">+2</strong> L/E/V. Si empatas, elige quién clasifica:{" "}
-          <strong className="text-gold">+2</strong> extra (hasta +4 sin marcador exacto).
+          <strong className="text-gold">+2</strong> extra (hasta +4 sin marcador exacto). Expande
+          cada cruce para horario, TV y pronósticos del grupo.
         </p>
         <p className="mt-1 text-xs text-lime">
           Ronda activa: <strong>{phaseLabel(activePhase)}</strong>
@@ -68,6 +69,7 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
         picks={picks}
         interactive
         onSave={save}
+        showSocial
       />
 
       {completedPhases.length > 0 && (
@@ -90,6 +92,7 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
                   results={results}
                   picks={picks}
                   archived
+                  showSocial
                 />
               </div>
             </details>
