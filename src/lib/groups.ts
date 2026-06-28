@@ -1,8 +1,9 @@
 import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { isMissingColumnError } from "@/lib/db-errors";
 import { getFeaturedMatch } from "@/lib/app-config";
-import { prisma } from "@/lib/prisma";
 import { getTournamentAnswers } from "@/lib/global-answers";
+import { prisma } from "@/lib/prisma";
+import { knockoutLabelsMatch } from "@/lib/knockout-labels";
 import { getMatch, matches } from "@/lib/matches-data";
 import { POLL_CONFIG } from "@/lib/poll-config";
 import { getMatchPoints, getTournamentPoints, SCORING_RULES } from "@/lib/scoring";
@@ -160,7 +161,7 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
 
     for (const kp of member.knockoutPredictions) {
       const result = resultMap.get(kp.matchId);
-      if (result?.winnerLabel && kp.winnerLabel === result.winnerLabel) {
+      if (result?.winnerLabel && knockoutLabelsMatch(kp.winnerLabel, result.winnerLabel)) {
         knockoutPts += SCORING_RULES.knockoutWinner;
       }
     }

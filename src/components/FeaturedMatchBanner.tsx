@@ -1,6 +1,9 @@
 import { getFeaturedMatch } from "@/lib/app-config";
+import { isKnockoutPhase } from "@/lib/tournament-phase";
 
 export async function FeaturedMatchBanner() {
+  if (isKnockoutPhase()) return null;
+
   const featured = await getFeaturedMatch();
   if (!featured) return null;
 

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { matches } from "@/lib/matches-data";
+import { isKnockoutPhase } from "@/lib/tournament-phase";
 import { KnockoutPicks } from "./KnockoutPicks";
 import { LiveStandingsTable } from "./LiveStandingsTable";
 import { PollaMatchList } from "./PollaMatchList";
@@ -46,7 +47,9 @@ export function PollaDashboard({
   tournament,
   progress,
 }: Props) {
-  const [tab, setTab] = useState<Tab>("partidos");
+  const [tab, setTab] = useState<Tab>(() =>
+    isKnockoutPhase() ? "eliminatoria" : "partidos",
+  );
   const [matchView, setMatchView] = useState<MatchView>("calendar");
   const [groupFilter, setGroupFilter] = useState<GroupFilter>("A");
   const [results, setResults] = useState<ResultMap>(initialResults);

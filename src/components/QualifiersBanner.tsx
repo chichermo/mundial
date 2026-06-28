@@ -30,6 +30,11 @@ export function QualifiersBanner() {
           zona se marca como <span className="text-gold">en zona</span> (puede cambiar).
         </p>
       )}
+      {data.groupStageComplete && (
+        <p className="mt-1 text-xs text-muted">
+          Fase de grupos cerrada. Solo los clasificados suman puntos en la eliminatoria de la polla.
+        </p>
+      )}
       <div className="mt-3 flex flex-wrap gap-2">
         {data.rows.map((row) => (
           <Link

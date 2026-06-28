@@ -59,11 +59,18 @@ export default async function PollaPage() {
       knockout[k.matchId] = k.winnerLabel;
     }
 
-    const results: Record<number, { homeScore: number | null; awayScore: number | null }> = {};
+    const results: Record<
+      number,
+      { homeScore: number | null; awayScore: number | null; winnerLabel?: string | null }
+    > = {};
     try {
       const allResults = await prisma.matchResult.findMany();
       for (const r of allResults) {
-        results[r.matchId] = { homeScore: r.homeScore, awayScore: r.awayScore };
+        results[r.matchId] = {
+          homeScore: r.homeScore,
+          awayScore: r.awayScore,
+          winnerLabel: r.winnerLabel,
+        };
       }
     } catch (err) {
       console.error("[polla] Error cargando resultados:", err);

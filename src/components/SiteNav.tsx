@@ -9,6 +9,7 @@ import { InstallAppButton } from "./InstallAppButton";
 const links = [
   { href: "/", label: "Inicio" },
   { href: "/calendario", label: "Calendario" },
+  { href: "/calendario/eliminatoria", label: "Eliminatoria" },
   { href: "/polla/grupos", label: "Polla" },
 ];
 
