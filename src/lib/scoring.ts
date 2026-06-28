@@ -5,6 +5,8 @@ export const SCORING_RULES = {
   exactScore: 5,
   correctResult: 2,
   knockoutWinner: 2,
+  /** Bonus en empate: acertar quién clasifica (prórroga/penales). */
+  knockoutAdvancer: 2,
   champion: 10,
   surprise: 6,
   revelationTeam: 6,
@@ -45,10 +47,29 @@ export function getKnockoutPoints(
   if (!result) return 0;
 
   if (pred.homeScore != null && pred.awayScore != null) {
-    return getMatchPoints(
+    const exact =
+      pred.homeScore === result.homeScore && pred.awayScore === result.awayScore;
+    if (exact) return SCORING_RULES.exactScore;
+
+    const resultPts = getMatchPoints(
       { homeScore: pred.homeScore, awayScore: pred.awayScore },
       { homeScore: result.homeScore, awayScore: result.awayScore },
     );
+    if (resultPts === 0) return 0;
+
+    const predDraw = pred.homeScore === pred.awayScore;
+    const resDraw = result.homeScore === result.awayScore;
+    if (
+      predDraw &&
+      resDraw &&
+      result.winnerLabel &&
+      pred.winnerLabel &&
+      (options?.winnerMatch ?? ((a, b) => a === b))(pred.winnerLabel, result.winnerLabel)
+    ) {
+      return resultPts + SCORING_RULES.knockoutAdvancer;
+    }
+
+    return resultPts;
   }
 
   if (result.winnerLabel && pred.winnerLabel) {

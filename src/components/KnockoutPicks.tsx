@@ -51,9 +51,9 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
       <div>
         <h3 className="font-display text-lg text-gold sm:text-xl">Cuadro eliminatorio</h3>
         <p className="mt-1 text-xs text-muted sm:text-sm">
-          Todos los jugadores siguen apostando. Marcador:{" "}
-          <strong className="text-lime">+5</strong> exacto, <strong className="text-gold">+2</strong>{" "}
-          L/E/V. Al cerrar cada ronda se archiva y avanza la siguiente.
+          Marcador: <strong className="text-lime">+5</strong> exacto,{" "}
+          <strong className="text-gold">+2</strong> L/E/V. Si empatas, elige quién clasifica:{" "}
+          <strong className="text-gold">+2</strong> extra (hasta +4 sin marcador exacto).
         </p>
         <p className="mt-1 text-xs text-lime">
           Ronda activa: <strong>{phaseLabel(activePhase)}</strong>

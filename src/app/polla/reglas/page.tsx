@@ -57,18 +57,25 @@ export default function ReglasPage() {
         <ul className="space-y-2 text-sm">
           <li>
             <strong className="text-lime">{SCORING_RULES.exactScore} pts</strong> — marcador exacto
+            (incluye empate, ej. 1-1)
           </li>
           <li>
             <strong className="text-gold">{SCORING_RULES.correctResult} pts</strong> — aciertas L/E/V
+            sin marcador exacto
+          </li>
+          <li>
+            <strong className="text-gold">+{SCORING_RULES.knockoutAdvancer} pts extra</strong> — si
+            empatan ambos marcadores y aciertas quién clasifica (prórroga/penales)
           </li>
           <li>
             <strong className="text-muted">0 pts</strong> — fallas el resultado
           </li>
         </ul>
         <p className="text-xs text-muted">
-          Si pronosticas empate, indica además quién clasifica (tanda de penales). Pronósticos antiguos
-          solo con ganador siguen valiendo +{SCORING_RULES.knockoutWinner} pts si aciertas al campeón
-          del cruce.
+          Ejemplo: pronosticas 1-1 y clasifica Brasil; termina 1-1 y gana Brasil → 5 pts (exacto).
+          Pronosticas 2-2 y clasifica Brasil; termina 1-1 y gana Brasil → 2 (empate) + 2 (clasifica)
+          = 4 pts. Pronósticos antiguos solo con ganador siguen valiendo +
+          {SCORING_RULES.knockoutWinner} pts.
         </p>
       </section>
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TeamFlag } from "@/components/bracket/TeamFlag";
 import { getMatch } from "@/lib/matches-data";
 import type { BracketMatchResult } from "@/lib/knockout-bracket";
+import { knockoutLabelsMatch } from "@/lib/knockout-labels";
 import { isPredictionLocked, lockReason } from "@/lib/match-lock";
 import type { KnockoutPickData } from "@/lib/knockout-predict";
 import { resolveDisplayTeams } from "@/lib/knockout-rounds";
@@ -11,8 +13,8 @@ import {
   parseScoreInput,
   sanitizeScoreInput,
 } from "@/lib/score-input";
-import { getKnockoutPoints } from "@/lib/scoring";
-import { teamFlag, teamShortName } from "@/lib/team-flags";
+import { getKnockoutPoints, SCORING_RULES } from "@/lib/scoring";
+import { teamShortName } from "@/lib/team-flags";
 
 type Props = {
   matchId: number;
@@ -40,14 +42,14 @@ export function BracketMatchNode({
 
   const [homeInput, setHomeInput] = useState(() => formatScoreInput(pick?.homeScore));
   const [awayInput, setAwayInput] = useState(() => formatScoreInput(pick?.awayScore));
-  const [tieWinner, setTieWinner] = useState(pick?.winnerLabel ?? "");
+  const [advancer, setAdvancer] = useState(pick?.winnerLabel ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     setHomeInput(formatScoreInput(pick?.homeScore));
     setAwayInput(formatScoreInput(pick?.awayScore));
-    setTieWinner(pick?.winnerLabel ?? "");
+    setAdvancer(pick?.winnerLabel ?? "");
   }, [pick?.homeScore, pick?.awayScore, pick?.winnerLabel]);
 
   if (!match) return null;
@@ -64,8 +66,13 @@ export function BracketMatchNode({
   const earnedPts =
     pick?.homeScore != null && pick?.awayScore != null && official
       ? getKnockoutPoints(
-          { homeScore: pick.homeScore, awayScore: pick.awayScore, winnerLabel: pick.winnerLabel ?? "" },
+          {
+            homeScore: pick.homeScore,
+            awayScore: pick.awayScore,
+            winnerLabel: pick.winnerLabel ?? "",
+          },
           official,
+          { winnerMatch: knockoutLabelsMatch },
         )
       : null;
 
@@ -85,14 +92,14 @@ export function BracketMatchNode({
       setError("Marcador incompleto");
       return;
     }
-    if (h === a && !tieWinner) {
-      setError("Elige quién clasifica");
+    if (h === a && !advancer) {
+      setError("Si empatas, elige quién clasifica");
       return;
     }
     setSaving(true);
     setError("");
     try {
-      await onSave(matchId, h, a, h === a ? tieWinner : undefined);
+      await onSave(matchId, h, a, h === a ? advancer : undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
     } finally {
@@ -101,6 +108,10 @@ export function BracketMatchNode({
   }
 
   const showOfficial = official && !interactive;
+  const savedAdvancer =
+    pick?.winnerLabel &&
+    (pick.homeScore === pick.awayScore ||
+      (official && official.homeScore === official.awayScore));
 
   return (
     <div
@@ -118,11 +129,20 @@ export function BracketMatchNode({
           name={home}
           score={showOfficial ? official.homeScore : pick?.homeScore}
           winner={winner === home}
+          selected={advancer === home}
         />
         <div className="flex flex-col items-center gap-1">
           <span className="rounded bg-ink px-2 py-0.5 text-[10px] font-bold text-cream">VS</span>
           {showOfficial && earnedPts != null && (
-            <span className={`text-[10px] font-semibold ${earnedPts >= 5 ? "text-lime" : earnedPts >= 2 ? "text-gold" : "text-muted"}`}>
+            <span
+              className={`text-[10px] font-semibold ${
+                earnedPts >= SCORING_RULES.exactScore
+                  ? "text-lime"
+                  : earnedPts >= SCORING_RULES.correctResult
+                    ? "text-gold"
+                    : "text-muted"
+              }`}
+            >
               {earnedPts > 0 ? `+${earnedPts}` : "0"}
             </span>
           )}
@@ -131,11 +151,13 @@ export function BracketMatchNode({
           name={away}
           score={showOfficial ? official.awayScore : pick?.awayScore}
           winner={winner === away}
+          selected={advancer === away}
         />
       </div>
 
       {interactive && onSave && !locked && (
-        <div className="mt-3 space-y-2 border-t border-pitch-mid/40 pt-2">
+        <div className="mt-3 space-y-2.5 border-t border-pitch-mid/40 pt-2">
+          <p className="text-center text-[10px] text-muted">Marcador (90&apos; + prórroga)</p>
           <div className="flex items-center justify-center gap-2">
             <input
               type="text"
@@ -165,17 +187,25 @@ export function BracketMatchNode({
               {saving ? "…" : "OK"}
             </button>
           </div>
-          {isTiePick && (
-            <select
-              value={tieWinner}
-              onChange={(e) => setTieWinner(e.target.value)}
-              className="w-full rounded-lg border border-pitch-mid bg-pitch px-2 py-1 text-[10px] text-cream"
-            >
-              <option value="">Clasifica…</option>
-              <option value={home}>{teamShortName(home)}</option>
-              <option value={away}>{teamShortName(away)}</option>
-            </select>
-          )}
+
+          <div className="space-y-1.5">
+            <p className="text-center text-[10px] text-gold">
+              Quién clasifica{isTiePick ? " · obligatorio" : " · si empatas"}
+            </p>
+            <div className="flex justify-center gap-2">
+              <AdvancerButton
+                team={home}
+                active={advancer === home}
+                onClick={() => setAdvancer(home)}
+              />
+              <AdvancerButton
+                team={away}
+                active={advancer === away}
+                onClick={() => setAdvancer(away)}
+              />
+            </div>
+          </div>
+
           {error && <p className="text-center text-[10px] text-red-300">{error}</p>}
         </div>
       )}
@@ -194,9 +224,38 @@ export function BracketMatchNode({
       {!interactive && pick?.homeScore != null && pick?.awayScore != null && !showOfficial && (
         <p className="mt-2 text-center text-[10px] text-gold">
           Tu pick: {pick.homeScore}-{pick.awayScore}
+          {savedAdvancer && pick.winnerLabel
+            ? ` · ${teamShortName(pick.winnerLabel)}`
+            : ""}
         </p>
       )}
     </div>
+  );
+}
+
+function AdvancerButton({
+  team,
+  active,
+  onClick,
+}: {
+  team: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors ${
+        active
+          ? "border-lime bg-lime/15 ring-1 ring-lime/40"
+          : "border-pitch-mid/80 bg-pitch/80 hover:border-gold/50"
+      }`}
+      title={`Clasifica ${team}`}
+    >
+      <TeamFlag team={team} size="sm" />
+      <span className="max-w-[72px] truncate text-[10px] text-cream">{teamShortName(team)}</span>
+    </button>
   );
 }
 
@@ -204,23 +263,25 @@ function TeamBadge({
   name,
   score,
   winner,
+  selected,
 }: {
   name: string;
   score?: number | null;
   winner?: boolean;
+  selected?: boolean;
 }) {
   return (
-    <div
-      className={`flex w-[72px] flex-col items-center gap-1 sm:w-20 ${
-        winner ? "opacity-100" : ""
-      }`}
-    >
+    <div className="flex w-[76px] flex-col items-center gap-1 sm:w-20">
       <div
-        className={`flex h-12 w-12 items-center justify-center rounded-lg border-2 bg-pitch-light text-2xl sm:h-14 sm:w-14 sm:text-3xl ${
-          winner ? "border-lime shadow-[0_0_12px_rgba(125,255,79,0.35)]" : "border-pitch-mid/80"
+        className={`overflow-hidden rounded-lg border-2 ${
+          winner
+            ? "border-lime shadow-[0_0_12px_rgba(125,255,79,0.35)]"
+            : selected
+              ? "border-gold ring-1 ring-gold/40"
+              : "border-pitch-mid/80"
         }`}
       >
-        {teamFlag(name)}
+        <TeamFlag team={name} size="md" className="block w-[56px] sm:w-[64px]" />
       </div>
       <span
         className={`max-w-full truncate text-center text-[10px] leading-tight sm:text-xs ${

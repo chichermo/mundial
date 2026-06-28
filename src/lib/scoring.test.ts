@@ -29,6 +29,30 @@ describe("getKnockoutPoints", () => {
     assert.equal(pts, 5);
   });
 
+  it("otorga 5 pts por empate exacto aunque falle el clasificado", () => {
+    const pts = getKnockoutPoints(
+      { homeScore: 1, awayScore: 1, winnerLabel: "Brazil" },
+      { homeScore: 1, awayScore: 1, winnerLabel: "Japan" },
+    );
+    assert.equal(pts, 5);
+  });
+
+  it("otorga 4 pts por empate L/E/V + clasificado correcto", () => {
+    const pts = getKnockoutPoints(
+      { homeScore: 2, awayScore: 2, winnerLabel: "Brazil" },
+      { homeScore: 1, awayScore: 1, winnerLabel: "Brazil" },
+    );
+    assert.equal(pts, 4);
+  });
+
+  it("otorga 2 pts por empate sin acertar clasificado", () => {
+    const pts = getKnockoutPoints(
+      { homeScore: 0, awayScore: 0, winnerLabel: "Brazil" },
+      { homeScore: 1, awayScore: 1, winnerLabel: "Japan" },
+    );
+    assert.equal(pts, 2);
+  });
+
   it("fallback +2 pts si solo hay pick de ganador legacy", () => {
     const pts = getKnockoutPoints(
       { homeScore: null, awayScore: null, winnerLabel: "Brazil" },
