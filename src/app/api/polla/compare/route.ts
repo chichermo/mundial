@@ -28,7 +28,7 @@ export async function GET(req: Request) {
   if (!match) return NextResponse.json({ error: "Partido no encontrado" }, { status: 404 });
 
   const result = await prisma.matchResult.findUnique({ where: { matchId } });
-  const locked = isPredictionLocked(match, result);
+  const locked = isPredictionLocked(match, result, matchId);
   const isKnockout = match.phase !== "group";
 
   const resultLabel =

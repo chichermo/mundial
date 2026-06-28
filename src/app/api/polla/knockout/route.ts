@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     const resultMap = Object.fromEntries(allResults.map((r) => [r.matchId, r]));
     const result = resultMap[parsed.data.matchId];
 
-    if (isPredictionLocked(match, result)) {
+    if (isPredictionLocked(match, result, parsed.data.matchId)) {
       return NextResponse.json(
         { error: "Partido cerrado: no se puede modificar el pronóstico" },
         { status: 403 },
