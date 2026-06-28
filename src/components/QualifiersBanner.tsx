@@ -22,17 +22,18 @@ export function QualifiersBanner() {
   return (
     <div className="card-pitch border-lime/30 bg-lime/5 p-4">
       <p className="text-xs uppercase tracking-wider text-lime">
-        {data.groupStageComplete ? "Clasificados a eliminatoria" : "Ranking en vivo"}
+        {data.groupStageComplete ? "Eliminatoria abierta" : "Ranking en vivo"}
       </p>
       {!data.groupStageComplete && (
         <p className="mt-1 text-xs text-muted">
-          Los 4 primeros van a la eliminatoria (empates en puntos incluidos). Mientras no terminen los 72 partidos de grupos, esa
-          zona se marca como <span className="text-gold">en zona</span> (puede cambiar).
+          Los 4 primeros quedan <span className="text-lime">en zona</span> (empates incluidos). Cuando
+          terminen los 72 partidos de grupos, todos podrán apostar la eliminatoria.
         </p>
       )}
       {data.groupStageComplete && (
         <p className="mt-1 text-xs text-muted">
-          Fase de grupos cerrada. Solo los clasificados suman puntos en la eliminatoria de la polla.
+          Fase de grupos cerrada. <strong className="text-cream">Todos</strong> siguen apostando la
+          eliminatoria; los 4 de arriba conservan el distintivo de zona.
         </p>
       )}
       <div className="mt-3 flex flex-wrap gap-2">
@@ -59,7 +60,8 @@ export function QualifiersBanner() {
       </div>
       {data.groupStageComplete && (
         <p className="mt-2 text-xs text-muted">
-          Solo los {data.qualifiersCount} clasificados suman puntos en la eliminatoria de la polla.
+          Puntos de eliminatoria cuentan para todos. Zona = top {data.qualifiersCount} histórico de
+          grupos.
         </p>
       )}
     </div>

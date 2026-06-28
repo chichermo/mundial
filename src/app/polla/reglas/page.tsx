@@ -18,7 +18,8 @@ export default function ReglasPage() {
           Somos <strong className="text-cream">{POLL_CONFIG.maxMembers} jugadores</strong> en la
           polla. Todos pronostican la fase de grupos del Mundial (72 partidos). Al terminar esa
           fase, los <strong className="text-lime">{POLL_CONFIG.qualifiersCount} con más puntos</strong>{" "}
-          siguen compitiendo en la eliminatoria.
+          quedan en la <strong className="text-gold">zona</strong> (distintivo en la tabla).{" "}
+          <strong className="text-cream">Todos</strong> siguen apostando y sumando en la eliminatoria.
         </p>
       </section>
 
@@ -49,8 +50,9 @@ export default function ReglasPage() {
       <section className="card-pitch space-y-4 p-6">
         <h2 className="font-display text-xl text-gold">3. Eliminatoria</h2>
         <p className="text-sm text-muted">
-          Solo los {POLL_CONFIG.qualifiersCount} clasificados suman puntos en cruces de eliminatoria.
-          Pronostica el <strong className="text-cream">marcador</strong> de cada partido:
+          Todos los jugadores pronostican cada ronda (dieciseisavos, octavos, etc.). Al cerrar una
+          ronda se archiva y se abre la siguiente. Pronostica el{" "}
+          <strong className="text-cream">marcador</strong> de cada partido:
         </p>
         <ul className="space-y-2 text-sm">
           <li>

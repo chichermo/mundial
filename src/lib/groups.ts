@@ -206,8 +206,7 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
     const inZone = isInQualificationZone(row.groupPts, cutoffGroupPts);
     const qualified = groupStageComplete && inZone;
     const provisionalQualified = !groupStageComplete && inZone;
-    const knockoutCounted =
-      !groupStageComplete ? 0 : qualified ? row.knockoutPts : 0;
+    const knockoutCounted = groupStageComplete ? row.knockoutPts : 0;
 
     return {
       ...row,
@@ -258,6 +257,5 @@ export async function isMemberQualifiedForKnockout(
   const data = await computeLiveStandings(groupId);
   const row = data.rows.find((r) => r.id === memberId);
   if (!row) return false;
-  if (!data.groupStageComplete) return true;
-  return row.qualified;
+  return data.groupStageComplete;
 }

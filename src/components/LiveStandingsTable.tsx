@@ -151,7 +151,7 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
                       En zona
                     </span>
                   ) : data.groupStageComplete ? (
-                    <span className="text-[10px] text-muted">Fuera</span>
+                    <span className="text-[10px] text-muted">Eliminatoria</span>
                   ) : (
                     <span className="text-[10px] text-muted">—</span>
                   )}

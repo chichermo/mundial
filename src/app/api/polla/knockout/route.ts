@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { isMemberQualifiedForKnockout } from "@/lib/groups";
 import { deriveKnockoutWinnerLabel } from "@/lib/knockout-predict";
+import { resolveDisplayTeams } from "@/lib/knockout-rounds";
 import { isPredictionLocked } from "@/lib/match-lock";
 import { getMatch } from "@/lib/matches-data";
 import { prisma } from "@/lib/prisma";
@@ -34,9 +35,9 @@ export async function POST(req: Request) {
 
   await ensureDbSchema();
 
-  const result = await prisma.matchResult.findUnique({
-    where: { matchId: parsed.data.matchId },
-  });
+  const allResults = await prisma.matchResult.findMany();
+  const resultMap = Object.fromEntries(allResults.map((r) => [r.matchId, r]));
+  const result = resultMap[parsed.data.matchId];
 
   if (isPredictionLocked(match, result)) {
     return NextResponse.json(
@@ -45,22 +46,29 @@ export async function POST(req: Request) {
     );
   }
 
-  const qualified = await isMemberQualifiedForKnockout(session.memberId, session.groupId);
-  if (!qualified) {
+  const canPick = await isMemberQualifiedForKnockout(session.memberId, session.groupId);
+  if (!canPick) {
     return NextResponse.json(
-      { error: "Solo los 4 clasificados pueden pronosticar la eliminatoria" },
+      { error: "La eliminatoria se abre cuando termine la fase de grupos" },
       { status: 403 },
     );
   }
 
+  const teams = resolveDisplayTeams(parsed.data.matchId, resultMap);
   const { homeScore, awayScore } = parsed.data;
-  let winnerLabel = deriveKnockoutWinnerLabel(match, homeScore, awayScore);
+  let winnerLabel = deriveKnockoutWinnerLabel(teams, homeScore, awayScore);
 
   if (!winnerLabel) {
     const pick = parsed.data.winnerLabel?.trim();
-    if (!pick || (pick !== match.home && pick !== match.away)) {
+    const valid =
+      pick &&
+      (pick === teams.home ||
+        pick === teams.away ||
+        pick === match.home ||
+        pick === match.away);
+    if (!valid) {
       return NextResponse.json(
-        { error: "Si pronosticas empate, indica quién clasifica (local o visitante)." },
+        { error: "Si pronosticas empate, indica quién clasifica." },
         { status: 400 },
       );
     }

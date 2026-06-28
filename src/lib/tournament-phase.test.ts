@@ -25,8 +25,8 @@ describe("knockout bracket", () => {
     const bracket = buildKnockoutBracket();
     const r32 = bracket.find((r) => r.phase === "round32")!;
     const m73 = r32.slots.find((s) => s.match.id === 73)!.match;
-    assert.equal(m73.home, "South Africa");
-    assert.equal(m73.away, "Canada");
+    assert.equal(m73.home, "Germany");
+    assert.equal(m73.away, "Paraguay");
   });
 
   it("links round16 match 90 to winners of 73 and 75", () => {

@@ -20,7 +20,7 @@ export type BracketRound = {
 };
 
 /** Enlaces del cuadro FIFA: cada octavo+ depende de ganadores de dieciseisavos. */
-const FEEDERS: Record<number, [number, number]> = {
+export const FEEDERS: Record<number, [number, number]> = {
   89: [74, 77],
   90: [73, 75],
   91: [76, 78],

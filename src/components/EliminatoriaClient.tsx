@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { KnockoutBracket } from "@/components/KnockoutBracket";
+import { useEffect, useMemo, useState } from "react";
+import { BracketTree } from "@/components/bracket/BracketTree";
 import { PageHeader } from "@/components/ui/PageHeader";
+import type { BracketMatchResult } from "@/lib/knockout-bracket";
+import {
+  getActiveKnockoutPhase,
+  getCompletedKnockoutPhases,
+  phaseLabel,
+} from "@/lib/knockout-rounds";
 
 type ResultRow = {
   matchId: number;
@@ -12,9 +18,7 @@ type ResultRow = {
 };
 
 export function EliminatoriaClient() {
-  const [results, setResults] = useState<
-    Record<number, { homeScore: number | null; awayScore: number | null; winnerLabel?: string | null }>
-  >({});
+  const [results, setResults] = useState<Record<number, BracketMatchResult | undefined>>({});
 
   useEffect(() => {
     fetch("/api/matches/results", { cache: "no-store" })
@@ -25,7 +29,7 @@ export function EliminatoriaClient() {
           map[r.matchId] = {
             homeScore: r.homeScore,
             awayScore: r.awayScore,
-            winnerLabel: r.winnerLabel,
+            winnerLabel: r.winnerLabel ?? undefined,
           };
         }
         setResults(map);
@@ -33,14 +37,37 @@ export function EliminatoriaClient() {
       .catch(() => {});
   }, []);
 
+  const activePhase = useMemo(() => getActiveKnockoutPhase(results), [results]);
+  const completedPhases = useMemo(() => getCompletedKnockoutPhases(results), [results]);
+
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Mundial 2026"
         title="Cuadro eliminatorio"
-        description="Dieciseisavos en curso. Octavos, cuartos y final se van completando con los ganadores."
+        description={`Ronda activa: ${phaseLabel(activePhase)}. Resultados oficiales cargados por el admin.`}
       />
-      <KnockoutBracket picks={{}} results={results} interactive={false} />
+
+      <BracketTree phase={activePhase} results={results} picks={{}} />
+
+      {completedPhases.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="font-display text-lg text-cream">Rondas anteriores</h2>
+          {[...completedPhases].reverse().map((phase) => (
+            <details
+              key={phase}
+              className="overflow-hidden rounded-xl border border-pitch-mid/50 bg-pitch/30"
+            >
+              <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-cream">
+                {phaseLabel(phase)} · archivo
+              </summary>
+              <div className="border-t border-pitch-mid/40 p-3">
+                <BracketTree phase={phase} results={results} picks={{}} archived />
+              </div>
+            </details>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

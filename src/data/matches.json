@@ -2933,8 +2933,8 @@
       "id": 73,
       "date": "2026-06-28",
       "kickoffEst": "15:00",
-      "home": "South Africa",
-      "away": "Canada",
+      "home": "Germany",
+      "away": "Paraguay",
       "group": null,
       "phase": "round32",
       "venue": "SoFi Stadium",
@@ -2974,8 +2974,8 @@
       "id": 74,
       "date": "2026-06-29",
       "kickoffEst": "16:30",
-      "home": "Germany",
-      "away": "3er A/B/C/D/F",
+      "home": "France",
+      "away": "Sweden",
       "group": null,
       "phase": "round32",
       "venue": "Gillette Stadium",
@@ -3017,8 +3017,8 @@
       "id": 75,
       "date": "2026-06-29",
       "kickoffEst": "21:00",
-      "home": "Netherlands",
-      "away": "Morocco",
+      "home": "South Africa",
+      "away": "Canada",
       "group": null,
       "phase": "round32",
       "venue": "Estadio BBVA",
@@ -3056,8 +3056,8 @@
       "id": 76,
       "date": "2026-06-29",
       "kickoffEst": "13:00",
-      "home": "Brazil",
-      "away": "Japan",
+      "home": "Netherlands",
+      "away": "Morocco",
       "group": null,
       "phase": "round32",
       "venue": "NRG Stadium",
@@ -3097,8 +3097,8 @@
       "id": 77,
       "date": "2026-06-30",
       "kickoffEst": "17:00",
-      "home": "France",
-      "away": "3er C/D/F/G/H",
+      "home": "Portugal",
+      "away": "Croatia",
       "group": null,
       "phase": "round32",
       "venue": "MetLife Stadium",
@@ -3136,8 +3136,8 @@
       "id": 78,
       "date": "2026-06-30",
       "kickoffEst": "13:00",
-      "home": "Ivory Coast",
-      "away": "Norway",
+      "home": "Spain",
+      "away": "Austria",
       "group": null,
       "phase": "round32",
       "venue": "AT&T Stadium",
@@ -3161,7 +3161,10 @@
             "DAZN",
             "Movistar+ (DAZN Mundial)"
           ],
-          "freeTv": []
+          "freeTv": [
+            "La 1 / Teledeporte",
+            "RTVE Play"
+          ]
         },
         "belgium": {
           "all": [
@@ -3179,8 +3182,8 @@
       "id": 79,
       "date": "2026-06-30",
       "kickoffEst": "21:00",
-      "home": "Mexico",
-      "away": "3er C/E/F/H/I",
+      "home": "USA",
+      "away": "Bosnia and Herzegovina",
       "group": null,
       "phase": "round32",
       "venue": "Estadio Azteca",
@@ -3220,8 +3223,8 @@
       "id": 80,
       "date": "2026-07-01",
       "kickoffEst": "12:00",
-      "home": "England",
-      "away": "3er E/H/I/J/K",
+      "home": "Belgium",
+      "away": "Senegal",
       "group": null,
       "phase": "round32",
       "venue": "Mercedes-Benz Stadium",
@@ -3241,7 +3244,10 @@
             "DAZN",
             "Movistar+ (DAZN Mundial)"
           ],
-          "freeTv": []
+          "freeTv": [
+            "La 1 / Teledeporte",
+            "RTVE Play"
+          ]
         },
         "belgium": {
           "all": [
@@ -3259,8 +3265,8 @@
       "id": 81,
       "date": "2026-07-01",
       "kickoffEst": "20:00",
-      "home": "USA",
-      "away": "3er B/E/F/I/J",
+      "home": "Brazil",
+      "away": "Japan",
       "group": null,
       "phase": "round32",
       "venue": "Levi's Stadium",
@@ -3300,8 +3306,8 @@
       "id": 82,
       "date": "2026-07-01",
       "kickoffEst": "16:00",
-      "home": "Belgium",
-      "away": "3er A/E/H/I/J",
+      "home": "Ivory Coast",
+      "away": "Norway",
       "group": null,
       "phase": "round32",
       "venue": "Lumen Field",
@@ -3321,10 +3327,7 @@
             "DAZN",
             "Movistar+ (DAZN Mundial)"
           ],
-          "freeTv": [
-            "La 1 / Teledeporte",
-            "RTVE Play"
-          ]
+          "freeTv": []
         },
         "belgium": {
           "all": [
@@ -3342,8 +3345,8 @@
       "id": 83,
       "date": "2026-07-02",
       "kickoffEst": "19:00",
-      "home": "Congo DR",
-      "away": "Croatia",
+      "home": "Mexico",
+      "away": "Ecuador",
       "group": null,
       "phase": "round32",
       "venue": "BMO Field",
@@ -3381,8 +3384,8 @@
       "id": 84,
       "date": "2026-07-02",
       "kickoffEst": "15:00",
-      "home": "Spain",
-      "away": "Algeria",
+      "home": "England",
+      "away": "Congo DR",
       "group": null,
       "phase": "round32",
       "venue": "SoFi Stadium",
@@ -3406,10 +3409,7 @@
             "DAZN",
             "Movistar+ (DAZN Mundial)"
           ],
-          "freeTv": [
-            "La 1 / Teledeporte",
-            "RTVE Play"
-          ]
+          "freeTv": []
         },
         "belgium": {
           "all": [
@@ -3427,8 +3427,8 @@
       "id": 85,
       "date": "2026-07-02",
       "kickoffEst": "23:00",
-      "home": "Switzerland",
-      "away": "3er E/F/G/I/J",
+      "home": "Argentina",
+      "away": "Cape Verde",
       "group": null,
       "phase": "round32",
       "venue": "BC Place",
@@ -3466,8 +3466,8 @@
       "id": 86,
       "date": "2026-07-03",
       "kickoffEst": "18:00",
-      "home": "Argentina",
-      "away": "Uruguay",
+      "home": "Australia",
+      "away": "Egypt",
       "group": null,
       "phase": "round32",
       "venue": "Hard Rock Stadium",
@@ -3507,8 +3507,8 @@
       "id": 87,
       "date": "2026-07-03",
       "kickoffEst": "21:30",
-      "home": "Colombia",
-      "away": "3er D/E/I/J/L",
+      "home": "Switzerland",
+      "away": "Algeria",
       "group": null,
       "phase": "round32",
       "venue": "Arrowhead Stadium",
@@ -3548,8 +3548,8 @@
       "id": 88,
       "date": "2026-07-03",
       "kickoffEst": "14:00",
-      "home": "Australia",
-      "away": "Egypt",
+      "home": "Colombia",
+      "away": "Ghana",
       "group": null,
       "phase": "round32",
       "venue": "AT&T Stadium",
