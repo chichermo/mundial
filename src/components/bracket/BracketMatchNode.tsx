@@ -49,8 +49,8 @@ export function BracketMatchNode({
   const result = results[matchId];
   const teams = match ? resolveDisplayTeams(matchId, results) : { home: "?", away: "?" };
   const { home, away } = teams;
-  const locked = match ? isPredictionLocked(match, result) : true;
-  const reason = match ? lockReason(match, result) : "";
+  const locked = match ? isPredictionLocked(match, result, matchId) : true;
+  const reason = match ? lockReason(match, result, matchId) : "";
   const countdown = useCountdown(
     match?.date ?? "",
     match?.kickoffEst ?? "",
@@ -149,12 +149,16 @@ export function BracketMatchNode({
       <div className="p-2.5 sm:p-3">
         <div className="mb-2 flex flex-wrap items-center justify-center gap-1.5">
           <span className="font-display text-sm text-lime">#{matchId}</span>
-          <MatchStatusBadge match={match} result={result} />
+          <MatchStatusBadge match={match} matchId={matchId} result={result} />
           {countdown && !locked && (
             <span className="text-[10px] text-gold">{countdown}</span>
           )}
-          {locked && reason && (
-            <span className="rounded bg-pitch-mid/80 px-1.5 py-0.5 text-[10px] text-gold">
+          {reason && (
+            <span
+              className={`rounded px-1.5 py-0.5 text-[10px] ${
+                locked ? "bg-pitch-mid/80 text-gold" : "bg-lime/15 text-lime"
+              }`}
+            >
               {reason}
             </span>
           )}

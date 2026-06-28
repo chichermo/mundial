@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     where: { matchId: parsed.data.matchId },
   });
 
-  if (isPredictionLocked(match, result)) {
+  if (isPredictionLocked(match, result, parsed.data.matchId)) {
     return NextResponse.json(
       { error: "Este partido ya comenzó o terminó — no puedes cambiar el marcador" },
       { status: 403 },
