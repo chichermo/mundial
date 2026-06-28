@@ -7,6 +7,7 @@ import { knockoutLabelsMatch } from "@/lib/knockout-labels";
 import { getMatch, matches } from "@/lib/matches-data";
 import { POLL_CONFIG } from "@/lib/poll-config";
 import { getMatchPoints, getKnockoutPoints, getTournamentPoints } from "@/lib/scoring";
+import { isKnockoutPhase } from "@/lib/tournament-phase";
 
 const GROUP_MATCH_IDS = matches.filter((m) => m.phase === "group").map((m) => m.id);
 
@@ -143,6 +144,7 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
   });
 
   const groupStageComplete = finishedGroupMatches.length === GROUP_MATCH_IDS.length;
+  const knockoutOpen = groupStageComplete || isKnockoutPhase();
 
   const rawRows = members.map((member) => {
     let groupPts = 0;
@@ -229,7 +231,7 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
     const inZone = isInQualificationZone(row.groupPts, cutoffGroupPts);
     const qualified = groupStageComplete && inZone;
     const provisionalQualified = !groupStageComplete && inZone;
-    const knockoutCounted = groupStageComplete ? row.knockoutPts : 0;
+    const knockoutCounted = knockoutOpen ? row.knockoutPts : 0;
 
     return {
       ...row,
@@ -280,5 +282,5 @@ export async function isMemberQualifiedForKnockout(
   const data = await computeLiveStandings(groupId);
   const row = data.rows.find((r) => r.id === memberId);
   if (!row) return false;
-  return data.groupStageComplete;
+  return data.groupStageComplete || isKnockoutPhase();
 }

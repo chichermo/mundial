@@ -26,20 +26,23 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
   const completedPhases = useMemo(() => getCompletedKnockoutPhases(results), [results]);
 
   async function save(matchId: number, home: number, away: number, winnerLabel?: string) {
+    setStatus("");
     const res = await fetch("/api/polla/knockout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ matchId, homeScore: home, awayScore: away, winnerLabel }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.error ?? "Error al guardar");
+      const msg = data.error ?? data.hint ?? "Error al guardar";
+      setStatus(`Error #${matchId}: ${msg}`);
+      throw new Error(msg);
     }
     setPicks((p) => ({
       ...p,
       [matchId]: {
-        homeScore: home,
-        awayScore: away,
+        homeScore: data.homeScore ?? home,
+        awayScore: data.awayScore ?? away,
         winnerLabel: data.winnerLabel ?? winnerLabel ?? p[matchId]?.winnerLabel,
       },
     }));
@@ -61,7 +64,14 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
         </p>
       </div>
 
-      {status && <p className="text-xs text-lime">{status}</p>}
+      {status && (
+        <p
+          className={`text-xs ${status.startsWith("Error") ? "text-red-300" : "text-lime"}`}
+          role="status"
+        >
+          {status}
+        </p>
+      )}
 
       <BracketTree
         phase={activePhase}
