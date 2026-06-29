@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isMissingColumnError } from "@/lib/db-errors";
 import { formatKnockoutPredictionDisplay } from "@/lib/knockout-predict";
 import { isPredictionLocked } from "@/lib/match-lock";
+import { toEffectiveResult } from "@/lib/match-result";
 import { getMatch } from "@/lib/matches-data";
 import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
@@ -27,7 +28,8 @@ export async function GET(req: Request) {
   const match = getMatch(matchId);
   if (!match) return NextResponse.json({ error: "Partido no encontrado" }, { status: 404 });
 
-  const result = await prisma.matchResult.findUnique({ where: { matchId } });
+  const dbResult = await prisma.matchResult.findUnique({ where: { matchId } });
+  const result = dbResult ? toEffectiveResult(dbResult) : null;
   const locked = isPredictionLocked(match, result, matchId);
   const isKnockout = match.phase !== "group";
 

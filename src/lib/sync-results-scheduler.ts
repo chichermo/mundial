@@ -1,5 +1,6 @@
 import { syncResultsFromApiFootball } from "@/lib/api-football-sync";
 import { syncResultsFromEspn } from "@/lib/espn-sync";
+import { purgePrematureResults } from "@/lib/match-result";
 import { syncResultsFromOpenFootball } from "@/lib/openfootball-sync";
 import { prisma } from "@/lib/prisma";
 
@@ -19,6 +20,7 @@ async function isStale(): Promise<boolean> {
 }
 
 async function runSync(): Promise<void> {
+  await purgePrematureResults();
   await syncResultsFromOpenFootball();
   await syncResultsFromEspn();
   const apiKey = process.env.API_FOOTBALL_KEY;

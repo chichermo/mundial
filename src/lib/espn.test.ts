@@ -51,4 +51,22 @@ describe("resolveMatchIdByTeams (ESPN)", () => {
     );
     assert.equal(id, 2);
   });
+
+  it("maps South Africa vs Canada to #75 (not #73)", () => {
+    const id = resolveMatchIdByTeams(
+      "2026-06-28T19:00:00.000Z",
+      "South Africa",
+      "Canada",
+    );
+    assert.equal(id, 75);
+  });
+
+  it("maps Germany vs Paraguay to #73", () => {
+    const id = resolveMatchIdByTeams(
+      "2026-06-29T20:30:00.000Z",
+      "Germany",
+      "Paraguay",
+    );
+    assert.equal(id, 73);
+  });
 });

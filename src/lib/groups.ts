@@ -5,6 +5,7 @@ import { getTournamentAnswers } from "@/lib/global-answers";
 import { prisma } from "@/lib/prisma";
 import { knockoutLabelsMatch } from "@/lib/knockout-labels";
 import { getMatch, matches } from "@/lib/matches-data";
+import { mapEffectiveResults } from "@/lib/match-result";
 import { POLL_CONFIG } from "@/lib/poll-config";
 import { getMatchPoints, getKnockoutPoints, getTournamentPoints } from "@/lib/scoring";
 import { isKnockoutPhase } from "@/lib/tournament-phase";
@@ -125,7 +126,10 @@ export async function computeLiveStandings(groupId: string): Promise<LiveStandin
   }
 
   const results = await prisma.matchResult.findMany();
-  const resultMap = new Map(results.map((r) => [r.matchId, r]));
+  const effectiveByMatch = mapEffectiveResults(results);
+  const resultMap = new Map(
+    results.map((r) => [r.matchId, { ...r, ...effectiveByMatch[r.matchId] }]),
+  );
   const tournamentAnswers = await getTournamentAnswers();
   const featured = await getFeaturedMatch();
 

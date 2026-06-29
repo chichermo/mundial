@@ -9,6 +9,7 @@ import { resolveMatchIdByTeams } from "@/lib/fixture-map";
 import { getMatch } from "@/lib/matches-data";
 import { prisma } from "@/lib/prisma";
 import type { SyncResult } from "@/lib/sync-types";
+import { teamsMatch } from "@/lib/team-aliases";
 
 function parseScore(value: string | undefined): number | null {
   if (value == null || value === "") return null;
@@ -72,6 +73,14 @@ export async function syncResultsFromEspn(): Promise<SyncResult> {
       }
 
       const match = getMatch(matchId);
+      if (
+        !match ||
+        !teamsMatch(scores.homeName, scores.awayName, match.home, match.away)
+      ) {
+        unmapped++;
+        continue;
+      }
+
       await prisma.matchResult.upsert({
         where: { matchId },
         create: {

@@ -6,6 +6,7 @@ import { isMemberQualifiedForKnockout } from "@/lib/groups";
 import { deriveKnockoutWinnerLabel } from "@/lib/knockout-predict";
 import { resolveDisplayTeams } from "@/lib/knockout-rounds";
 import { isPredictionLocked } from "@/lib/match-lock";
+import { toEffectiveResult } from "@/lib/match-result";
 import { getMatch } from "@/lib/matches-data";
 import { prisma } from "@/lib/prisma";
 import { requirePollaMember } from "@/lib/require-auth";
@@ -54,7 +55,9 @@ export async function POST(req: Request) {
     const hasScoreColumns = await hasFullKnockoutSchema();
 
     const allResults = await prisma.matchResult.findMany();
-    const resultMap = Object.fromEntries(allResults.map((r) => [r.matchId, r]));
+    const resultMap = Object.fromEntries(
+      allResults.map((r) => [r.matchId, toEffectiveResult(r)]),
+    );
     const result = resultMap[parsed.data.matchId];
 
     if (isPredictionLocked(match, result, parsed.data.matchId)) {

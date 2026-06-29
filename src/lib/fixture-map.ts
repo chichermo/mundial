@@ -71,16 +71,20 @@ export function resolveMatchIdByTeams(
     return groupCandidates[0].id;
   }
 
-  const knockoutCandidates = matches.filter(
-    (m) => m.phase !== "group" && sameCalendarDay(eventDateIso, m.date),
+  const knockoutByTeams = matches.filter(
+    (m) =>
+      m.phase !== "group" &&
+      teamsMatch(homeName, awayName, m.home, m.away) &&
+      sameCalendarDay(eventDateIso, m.date),
   );
-  if (knockoutCandidates.length === 1) return knockoutCandidates[0].id;
-  if (knockoutCandidates.length > 1) {
-    knockoutCandidates.sort(
+
+  if (knockoutByTeams.length === 1) return knockoutByTeams[0].id;
+  if (knockoutByTeams.length > 1) {
+    knockoutByTeams.sort(
       (a, b) =>
         kickoffProximity(eventDateIso, a) - kickoffProximity(eventDateIso, b),
     );
-    return knockoutCandidates[0].id;
+    return knockoutByTeams[0].id;
   }
 
   return undefined;

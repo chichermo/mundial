@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ensureDbSchema } from "@/lib/ensure-db-schema";
 import { isMissingColumnError } from "@/lib/db-errors";
 import { isPredictionLocked } from "@/lib/match-lock";
+import { toEffectiveResult } from "@/lib/match-result";
 import { getMatch } from "@/lib/matches-data";
 import { upsertBasicPrediction } from "@/lib/prediction-upsert";
 import { prisma } from "@/lib/prisma";
@@ -35,9 +36,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Partido no existe" }, { status: 404 });
   }
 
-  const result = await prisma.matchResult.findUnique({
+  const dbResult = await prisma.matchResult.findUnique({
     where: { matchId: parsed.data.matchId },
   });
+  const result = dbResult ? toEffectiveResult(dbResult) : null;
 
   if (isPredictionLocked(match, result, parsed.data.matchId)) {
     return NextResponse.json(

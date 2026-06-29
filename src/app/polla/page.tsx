@@ -11,6 +11,7 @@ import { PollaProgressCard } from "@/components/PollaProgressCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getLeaderboard } from "@/lib/groups";
 import type { KnockoutPickData } from "@/lib/knockout-predict";
+import { mapEffectiveResults, purgePrematureResults } from "@/lib/match-result";
 import { loadPollaMember } from "@/lib/polla-member";
 import { getPollaProgress } from "@/lib/polla-progress";
 import { prisma } from "@/lib/prisma";
@@ -73,14 +74,9 @@ export default async function PollaPage() {
       { homeScore: number | null; awayScore: number | null; winnerLabel?: string | null }
     > = {};
     try {
+      await purgePrematureResults();
       const allResults = await prisma.matchResult.findMany();
-      for (const r of allResults) {
-        results[r.matchId] = {
-          homeScore: r.homeScore,
-          awayScore: r.awayScore,
-          winnerLabel: r.winnerLabel,
-        };
-      }
+      Object.assign(results, mapEffectiveResults(allResults));
     } catch (err) {
       console.error("[polla] Error cargando resultados:", err);
     }
