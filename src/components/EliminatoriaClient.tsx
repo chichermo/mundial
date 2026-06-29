@@ -41,7 +41,7 @@ export function EliminatoriaClient() {
   const completedPhases = useMemo(() => getCompletedKnockoutPhases(results), [results]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <PageHeader
         eyebrow="Mundial 2026"
         title="Cuadro eliminatorio"

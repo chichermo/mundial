@@ -99,17 +99,17 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
       </div>
 
       {/* Ranking */}
-      <div id="live-standings-export" className="card-pitch overflow-x-auto">
-        <table className="w-full min-w-[320px] text-left text-sm">
+      <div id="live-standings-export" className="card-pitch -mx-1 overflow-x-auto sm:mx-0">
+        <table className="w-full min-w-[280px] text-left text-sm">
           <thead>
             <tr className="border-b border-pitch-mid/60 bg-pitch/60 text-xs uppercase tracking-wider text-muted">
-              <th className="px-3 py-2.5">#</th>
-              <th className="px-3 py-2.5">Jugador</th>
-              <th className="px-3 py-2.5 text-right">Grupos</th>
-              {!compact && <th className="hidden px-3 py-2.5 text-right sm:table-cell">Elim.</th>}
+              <th className="px-2 py-2.5 sm:px-3">#</th>
+              <th className="px-2 py-2.5 sm:px-3">Jugador</th>
+              <th className="px-2 py-2.5 text-right sm:px-3">Pts</th>
+              <th className="hidden px-3 py-2.5 text-right sm:table-cell">Grupos</th>
+              {!compact && <th className="hidden px-3 py-2.5 text-right md:table-cell">Elim.</th>}
               <th className="hidden px-3 py-2.5 text-right sm:table-cell">Esp.</th>
-              <th className="px-3 py-2.5 text-right">Total</th>
-              <th className="px-3 py-2.5 text-center">Estado</th>
+              <th className="px-2 py-2.5 text-center sm:px-3">Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -120,40 +120,46 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
                   row.id === highlightId ? "bg-lime/10" : ""
                 }`}
               >
-                <td className="px-3 py-2.5 font-display text-lg text-gold">{row.rank}</td>
-                <td className="px-3 py-2.5 font-medium text-cream">
+                <td className="px-2 py-2.5 font-display text-lg text-gold sm:px-3">{row.rank}</td>
+                <td className="max-w-[7rem] px-2 py-2.5 font-medium text-cream sm:max-w-none sm:px-3">
                   <Link href={`/polla/jugador/${row.id}`} className="hover:text-lime hover:underline">
                     {row.name}
                   </Link>
+                  <span className="mt-0.5 block text-[10px] tabular-nums text-muted sm:hidden">
+                    G {row.groupPts} · E {row.knockoutPts}
+                    {row.tournamentPts > 0 ? ` · Esp ${row.tournamentPts}` : ""}
+                  </span>
                 </td>
-                <td className="px-3 py-2.5 text-right tabular-nums">{row.groupPts}</td>
+                <td className="px-2 py-2.5 text-right font-display text-xl tabular-nums text-lime sm:px-3">
+                  {row.total}
+                </td>
+                <td className="hidden px-3 py-2.5 text-right tabular-nums sm:table-cell">
+                  {row.groupPts}
+                </td>
                 {!compact && (
-                  <td className="hidden px-3 py-2.5 text-right tabular-nums text-muted sm:table-cell">
+                  <td className="hidden px-3 py-2.5 text-right tabular-nums text-muted md:table-cell">
                     {row.knockoutPts}
                   </td>
                 )}
                 <td className="hidden px-3 py-2.5 text-right tabular-nums text-muted sm:table-cell">
                   {row.tournamentPts > 0 ? row.tournamentPts : "·"}
                 </td>
-                <td className="px-3 py-2.5 text-right font-display text-xl tabular-nums text-lime">
-                  {row.total}
-                </td>
-                <td className="px-3 py-2.5 text-center">
+                <td className="px-2 py-2.5 text-center sm:px-3">
                   {row.qualified ? (
-                    <span className="rounded-full bg-lime/15 px-2 py-0.5 text-[10px] font-medium text-lime">
+                    <span className="inline-block max-w-[4.5rem] rounded-full bg-lime/15 px-1.5 py-0.5 text-[9px] font-medium leading-tight text-lime sm:max-w-none sm:px-2 sm:text-[10px]">
                       Clasificado
                     </span>
                   ) : row.provisionalQualified ? (
                     <span
-                      className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-medium text-gold"
+                      className="inline-block max-w-[4.5rem] rounded-full bg-gold/15 px-1.5 py-0.5 text-[9px] font-medium leading-tight text-gold sm:max-w-none sm:px-2 sm:text-[10px]"
                       title="Por ahora entre los 4 primeros; puede cambiar hasta terminar la fase de grupos"
                     >
                       En zona
                     </span>
                   ) : data.groupStageComplete ? (
-                    <span className="text-[10px] text-muted">Eliminatoria</span>
+                    <span className="text-[9px] text-muted sm:text-[10px]">Elim.</span>
                   ) : (
-                    <span className="text-[10px] text-muted">—</span>
+                    <span className="text-[9px] text-muted sm:text-[10px]">—</span>
                   )}
                 </td>
               </tr>
@@ -164,9 +170,12 @@ export function LiveStandingsTable({ highlightId, compact = false }: Props) {
 
       {/* Matriz partidos terminados */}
       {showMatrix && (
-        <div className="card-pitch overflow-x-auto">
+        <div className="card-pitch -mx-1 overflow-x-auto sm:mx-0">
           <p className="border-b border-pitch-mid/40 px-3 py-2 text-xs text-muted">
             Puntos por partido (5 = exacto · 2 = L/E/V · 0 = fallo)
+          </p>
+          <p className="border-b border-pitch-mid/30 px-3 py-1.5 text-[10px] text-gold md:hidden">
+            Desliza horizontalmente para ver todos los partidos →
           </p>
           <table className="w-full text-left text-[10px] sm:text-xs">
             <thead>

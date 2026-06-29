@@ -50,7 +50,7 @@ export function KnockoutPicks({ initial, results = {} }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <div>
         <h3 className="font-display text-lg text-gold sm:text-xl">Cuadro eliminatorio</h3>
         <p className="mt-1 text-xs text-muted sm:text-sm">

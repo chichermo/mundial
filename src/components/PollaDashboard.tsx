@@ -236,7 +236,9 @@ export function PollaDashboard({
       )}
 
       {tab === "eliminatoria" && (
-        <KnockoutPicks initial={knockout} results={results} />
+        <div className="min-w-0">
+          <KnockoutPicks initial={knockout} results={results} />
+        </div>
       )}
 
       {tab === "especiales" && <TournamentPicksForm initial={tournament} />}

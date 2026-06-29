@@ -138,7 +138,7 @@ export function BracketMatchNode({
   return (
     <div
       id={`partido-${matchId}`}
-      className={`relative scroll-mt-24 rounded-xl border bg-pitch/60 ${
+      className={`relative min-w-0 scroll-mt-24 rounded-xl border bg-pitch/60 ${
         winner
           ? "border-lime/50 shadow-[0_0_20px_rgba(125,255,79,0.08)]"
           : locked
@@ -147,7 +147,7 @@ export function BracketMatchNode({
       } ${compact ? "text-xs" : "text-sm"}`}
     >
       <div className="p-2.5 sm:p-3">
-        <div className="mb-2 flex flex-wrap items-center justify-center gap-1.5">
+        <div className="mb-2 flex flex-wrap items-center justify-center gap-1.5 px-1">
           <span className="font-display text-sm text-lime">#{matchId}</span>
           <MatchStatusBadge match={match} matchId={matchId} result={result} />
           {countdown && !locked && (
@@ -155,7 +155,7 @@ export function BracketMatchNode({
           )}
           {reason && (
             <span
-              className={`rounded px-1.5 py-0.5 text-[10px] ${
+              className={`max-w-full rounded px-1.5 py-0.5 text-center text-[10px] leading-snug ${
                 locked ? "bg-pitch-mid/80 text-gold" : "bg-lime/15 text-lime"
               }`}
             >
@@ -164,7 +164,7 @@ export function BracketMatchNode({
           )}
         </div>
 
-        <div className="flex items-center justify-center gap-2 sm:gap-3">
+        <div className="flex items-start justify-center gap-2 sm:items-center sm:gap-3">
           <TeamBadge
             name={home}
             score={showOfficial ? official.homeScore : pick?.homeScore}
@@ -195,24 +195,24 @@ export function BracketMatchNode({
           />
         </div>
 
-        <p className="mt-2 text-center text-[10px] text-muted">
+        <p className="mt-2 text-center text-[10px] leading-snug text-muted">
           {dateLabel} · {time} Chile
         </p>
-        <p className="text-center text-[10px] text-muted">
+        <p className="line-clamp-2 text-center text-[10px] leading-snug text-muted">
           {match.venue} · {match.city}
         </p>
 
         {canEdit && (
           <div className="mt-3 space-y-2.5 border-t border-pitch-mid/40 pt-2">
             <p className="text-center text-[10px] text-muted">Marcador (90&apos; + prórroga)</p>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               <input
                 type="text"
                 inputMode="numeric"
                 maxLength={2}
                 value={homeInput}
                 onChange={(e) => setHomeInput(sanitizeScoreInput(e.target.value))}
-                className="h-9 w-10 rounded-lg border border-pitch-mid bg-pitch text-center text-cream focus:ring-2 focus:ring-lime"
+                className="h-10 w-11 rounded-lg border border-pitch-mid bg-pitch text-center text-cream focus:ring-2 focus:ring-lime sm:h-9 sm:w-10"
                 aria-label={`Goles ${home}`}
               />
               <span className="text-muted">-</span>
@@ -222,14 +222,14 @@ export function BracketMatchNode({
                 maxLength={2}
                 value={awayInput}
                 onChange={(e) => setAwayInput(sanitizeScoreInput(e.target.value))}
-                className="h-9 w-10 rounded-lg border border-pitch-mid bg-pitch text-center text-cream focus:ring-2 focus:ring-lime"
+                className="h-10 w-11 rounded-lg border border-pitch-mid bg-pitch text-center text-cream focus:ring-2 focus:ring-lime sm:h-9 sm:w-10"
                 aria-label={`Goles ${away}`}
               />
               <button
                 type="button"
                 onClick={save}
                 disabled={saving || homeInput === "" || awayInput === ""}
-                className="btn-primary min-h-9 px-2 text-[10px]"
+                className="btn-primary min-h-10 w-full px-3 text-xs sm:min-h-9 sm:w-auto sm:px-2 sm:text-[10px]"
               >
                 {saving ? "…" : "Guardar"}
               </button>
@@ -239,7 +239,7 @@ export function BracketMatchNode({
               <p className="text-center text-[10px] text-gold">
                 Quién clasifica{isTiePick ? " · obligatorio" : " · si empatas"}
               </p>
-              <div className="flex justify-center gap-2">
+              <div className="flex flex-wrap justify-center gap-2">
                 <AdvancerButton
                   team={home}
                   active={advancer === home}
@@ -314,7 +314,7 @@ function AdvancerButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-col items-center gap-1 rounded-lg border px-2 py-1.5 transition-colors disabled:opacity-50 ${
+      className={`flex min-w-[88px] flex-1 flex-col items-center gap-1 rounded-lg border px-2.5 py-2 transition-colors disabled:opacity-50 sm:min-w-0 sm:flex-none sm:px-2 sm:py-1.5 ${
         active
           ? "border-lime bg-lime/15 ring-1 ring-lime/40"
           : "border-pitch-mid/80 bg-pitch/80 hover:border-gold/50"
@@ -322,7 +322,9 @@ function AdvancerButton({
       title={`Clasifica ${team}`}
     >
       <TeamFlag team={team} size="sm" />
-      <span className="max-w-[72px] truncate text-[10px] text-cream">{teamShortName(team)}</span>
+      <span className="max-w-[96px] truncate text-center text-[10px] text-cream sm:max-w-[72px]">
+        {teamShortName(team)}
+      </span>
     </button>
   );
 }
@@ -339,7 +341,7 @@ function TeamBadge({
   selected?: boolean;
 }) {
   return (
-    <div className="flex w-[76px] flex-col items-center gap-1 sm:w-20">
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-1 sm:w-20 sm:flex-none">
       <div
         className={`overflow-hidden rounded-lg border-2 ${
           winner
@@ -349,7 +351,7 @@ function TeamBadge({
               : "border-pitch-mid/80"
         }`}
       >
-        <TeamFlag team={name} size="md" className="block w-[56px] sm:w-[64px]" />
+        <TeamFlag team={name} size="md" className="block w-[52px] sm:w-[64px]" />
       </div>
       <span
         className={`max-w-full truncate text-center text-[10px] leading-tight sm:text-xs ${
